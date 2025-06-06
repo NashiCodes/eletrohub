@@ -1,9 +1,17 @@
 package com.jp.eletrohub.model.entity;
 
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Cliente {
 
 
@@ -12,7 +20,7 @@ public class Cliente {
     private Long id;
 
     private String nome;
-    private String CPF;
+    private String cpf;
     private String telefone;
     private String email;
 }
