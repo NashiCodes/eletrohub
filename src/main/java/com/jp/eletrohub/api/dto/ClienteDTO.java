@@ -15,11 +15,6 @@ public class ClienteDTO {
     public static ClienteDTO create(Cliente cliente) {
         ModelMapper modelMapper = new ModelMapper();
         ClienteDTO dto = modelMapper.map(cliente, ClienteDTO.class);
-        dto.id = cliente.getId();
-        dto.nome = cliente.getNome();
-        dto.cpf = cliente.getCpf();
-        dto.telefone = cliente.getTelefone();
-        dto.email = cliente.getEmail();
         return dto;
     }
 }

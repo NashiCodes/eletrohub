@@ -10,8 +10,6 @@ public class GerenteDTO {
     public static GerenteDTO create(Gerente gerente) {
         ModelMapper modelMapper = new ModelMapper();
         GerenteDTO dto = modelMapper.map(gerente, GerenteDTO.class);
-        dto.id = gerente.getId();
-        dto.nome = gerente.getNome();
         return dto;
     }
 }

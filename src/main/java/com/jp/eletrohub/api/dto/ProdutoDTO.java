@@ -9,14 +9,13 @@ public class ProdutoDTO {
     private String nome;
     private double valor;
     private double quantidade;
+    private Long idCategoria;
+    private String nomeCategoria;
 
     public static ProdutoDTO create(Produto produto) {
         ModelMapper modelMapper = new ModelMapper();
         ProdutoDTO dto = modelMapper.map(produto, ProdutoDTO.class);
-        dto.id = produto.getId();
-        dto.nome = produto.getNome();
-        dto.valor = produto.getValor();
-        dto.quantidade = produto.getQuantidade();
+        dto.nomeCategoria = produto.getCategoria().getNome();
         return dto;
     }
 }

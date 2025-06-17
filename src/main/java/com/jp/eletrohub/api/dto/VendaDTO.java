@@ -8,12 +8,16 @@ import java.util.Date;
 public class VendaDTO {
     private Long id;
     private Date data;
+    private Long idVendedor;
+    private String nomeVendedor;
+    private Long idCliente;
+    private String nomeCliente;
 
     public static VendaDTO create(Venda venda) {
         ModelMapper modelMapper = new ModelMapper();
         VendaDTO dto = modelMapper.map(venda, VendaDTO.class);
-        dto.id = venda.getId();
-        dto.data = venda.getData();
+        dto.nomeVendedor = venda.getVendedor().getNome();
+        dto.nomeCliente = venda.getCliente().getNome();
         return dto;
     }
 }

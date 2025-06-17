@@ -19,6 +19,6 @@ public class Produto {
     private double valor;
     private double quantidade;
 
-    @OneToMany
+    @ManyToOne
     private Categoria categoria;
 }

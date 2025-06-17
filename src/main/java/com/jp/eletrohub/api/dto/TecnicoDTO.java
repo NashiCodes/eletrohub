@@ -11,8 +11,6 @@ public class TecnicoDTO {
     public static TecnicoDTO create(Tecnico tecnico) {
         ModelMapper modelMapper = new ModelMapper();
         TecnicoDTO dto = modelMapper.map(tecnico, TecnicoDTO.class);
-        dto.id = tecnico.getId();
-        dto.nome = tecnico.getNome();
         return dto;
     }
 }

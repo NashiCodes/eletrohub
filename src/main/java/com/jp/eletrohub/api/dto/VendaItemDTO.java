@@ -7,13 +7,14 @@ public class VendaItemDTO {
     private Long id;
     private double valor;
     private double quantidade;
+    private Long idVenda;
+    private Long idProduto;
+    private String nomeProduto;
 
     public static VendaItemDTO create(VendaItem vendaItem) {
         ModelMapper modelMapper = new ModelMapper();
         VendaItemDTO dto = modelMapper.map(vendaItem, VendaItemDTO.class);
-        dto.id = vendaItem.getId();
-        dto.valor = vendaItem.getValor();
-        dto.quantidade = vendaItem.getQuantidade();
+        dto.nomeProduto = vendaItem.getProduto().getNome();
         return dto;
     }
 }

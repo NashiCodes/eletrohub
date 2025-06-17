@@ -19,10 +19,10 @@ public class Venda {
 
     private Date data;
 
-    @OneToMany
+    @ManyToOne
     private Vendedor vendedor;
 
-    @OneToMany
+    @ManyToOne
     private Cliente cliente;
 
 }

@@ -19,9 +19,9 @@ public class VendaItem {
 
     private double valor;
     private double quantidade;
-    @OneToMany
+    @ManyToOne
     private Venda venda;
-    @OneToMany
+    @ManyToOne
     private Produto produto;
 
 }

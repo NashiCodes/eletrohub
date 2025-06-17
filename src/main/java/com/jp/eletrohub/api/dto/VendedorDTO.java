@@ -18,8 +18,6 @@ public class VendedorDTO {
     public static VendedorDTO create(Vendedor vendedor) {
         ModelMapper modelMapper = new ModelMapper();
         VendedorDTO dto = modelMapper.map(vendedor, VendedorDTO.class);
-        dto.id = vendedor.getId();
-        dto.nome = vendedor.getNome();
         return dto;
     }
 }
