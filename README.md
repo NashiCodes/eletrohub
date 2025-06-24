@@ -77,7 +77,7 @@ echo $JAVA_HOME
 ```sh
 ./tools/infra.sh stop
 ```
-#### Restart database
+#### Reset database
 ```sh
-./tools/infra.sh restartdb
+./tools/infra.sh resetdb
 ```
