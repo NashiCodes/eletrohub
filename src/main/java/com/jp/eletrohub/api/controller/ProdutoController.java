@@ -4,24 +4,21 @@ import com.jp.eletrohub.api.dto.ProdutoDTO;
 import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.Produto;
 import com.jp.eletrohub.service.ProdutoService;
+import jakarta.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/produtos")
 @RequiredArgsConstructor
 public class ProdutoController {
 
-    private final ProdutoService service;
-
-    public ProdutoController(ProdutoService service) {
-        this.service = service;
-    }
+    private final @Nonnull ProdutoService service;
 
     @GetMapping
     public ResponseEntity get() {

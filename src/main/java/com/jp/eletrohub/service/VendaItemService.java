@@ -1,13 +1,14 @@
 package com.jp.eletrohub.service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
+import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.VendaItem;
 import com.jp.eletrohub.model.repository.VendaItemRepository;
+import jakarta.annotation.Nonnull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class VendaItemService {
@@ -32,16 +33,15 @@ public class VendaItemService {
     }
 
     @Transactional
-    public void excluir(VendaItem vendaItem) {
-        Objects.requireNonNull(vendaItem.getId());
+    public void excluir(@Nonnull VendaItem vendaItem) {
         repository.delete(vendaItem);
     }
 
-    public void validar(VendaItem vendaItem) {
+    public void validar(@Nonnull VendaItem vendaItem) {
         if (vendaItem.getProduto() == null) {
             throw new RegraNegocioException("Produto do item da venda é obrigatório");
         }
-        if (vendaItem.getQuantidade() == null || vendaItem.getQuantidade() <= 0) {
+        if (vendaItem.getQuantidade() <= 0) {
             throw new RegraNegocioException("Quantidade inválida para o item da venda");
         }
     }

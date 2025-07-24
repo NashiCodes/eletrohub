@@ -4,24 +4,21 @@ import com.jp.eletrohub.api.dto.TecnicoDTO;
 import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.Tecnico;
 import com.jp.eletrohub.service.TecnicoService;
+import jakarta.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/tecnicos")
 @RequiredArgsConstructor
 public class TecnicoController {
 
-    private final TecnicoService service;
-
-    public TecnicoController(TecnicoService service) {
-        this.service = service;
-    }
+    private final @Nonnull TecnicoService service;
 
     @GetMapping
     public ResponseEntity get() {

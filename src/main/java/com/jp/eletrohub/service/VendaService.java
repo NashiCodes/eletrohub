@@ -1,14 +1,14 @@
 package com.jp.eletrohub.service;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
 import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.Venda;
 import com.jp.eletrohub.model.repository.VendaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class VendaService {
@@ -42,8 +42,8 @@ public class VendaService {
         if (venda.getCliente() == null) {
             throw new RegraNegocioException("Cliente da venda é obrigatório");
         }
-        if (venda.getItens() == null || venda.getItens().isEmpty()) {
-            throw new RegraNegocioException("Venda deve conter ao menos um item");
-        }
+//        if (venda.getItens() == null || venda.getItens().isEmpty()) {
+//            throw new RegraNegocioException("Venda deve conter ao menos um item");
+//        }
     }
 }

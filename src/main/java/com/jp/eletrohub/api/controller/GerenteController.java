@@ -4,24 +4,21 @@ import com.jp.eletrohub.api.dto.GerenteDTO;
 import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.Gerente;
 import com.jp.eletrohub.service.GerenteService;
+import jakarta.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import lombok.RequiredArgsConstructor;
+
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/gerentes")
 @RequiredArgsConstructor
 public class GerenteController {
 
-    private final GerenteService service;
-
-    public GerenteController(GerenteService service) {
-        this.service = service;
-    }
+    private final @Nonnull GerenteService service;
 
     @GetMapping
     public ResponseEntity get() {
