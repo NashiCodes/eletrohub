@@ -7,6 +7,7 @@ import com.jp.eletrohub.service.ClienteService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +19,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ClienteController {
 
-    private final @Nonnull ClienteService service;
+    private final ClienteService service;
+
+    public ClienteController(@Nonnull ClienteService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public ResponseEntity get() {
@@ -41,6 +46,36 @@ public class ClienteController {
             Cliente cliente = converter(dto);
             cliente = service.salvar(cliente);
             return ResponseEntity.status(201).body(cliente);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+
+    @PutMapping("{id}")
+    public ResponseEntity atualizar(@PathVariable("id") Long id, ClienteDTO dto) {
+        if (!service.getClienteById(id).isPresent()) {
+            return new ResponseEntity("Cliente não encontrado", HttpStatus.NOT_FOUND);
+        }
+        try {
+            Cliente cliente = converter(dto);
+            cliente.setId(id);
+            service.salvar(cliente);
+            return ResponseEntity.ok(cliente);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity excluir(@PathVariable("id") Long id) {
+        Optional<Cliente> cliente = service.getClienteById(id);
+        if (!cliente.isPresent()) {
+            return new ResponseEntity("Cliente não encontrado", HttpStatus.NOT_FOUND);
+        }
+        try {
+            service.excluir(cliente.get());
+            return new ResponseEntity(HttpStatus.NO_CONTENT);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

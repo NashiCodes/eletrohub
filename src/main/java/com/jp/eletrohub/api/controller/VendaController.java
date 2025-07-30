@@ -2,11 +2,15 @@ package com.jp.eletrohub.api.controller;
 
 import com.jp.eletrohub.api.dto.VendaDTO;
 import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.model.entity.Categoria;
+import com.jp.eletrohub.model.entity.Cliente;
 import com.jp.eletrohub.model.entity.Venda;
+import com.jp.eletrohub.model.entity.Vendedor;
 import com.jp.eletrohub.service.VendaService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -40,7 +44,47 @@ public class VendaController {
         try {
             Venda venda = converter(dto);
             venda = service.salvar(venda);
+
+            Categoria categoria = categoriaService.salvar(produto.getCategoria());
+            categoria.setCategoria(categoria);
+
             return ResponseEntity.status(201).body(venda);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity atualizar(@PathVariable("id") Long id, VendaDTO dto) {
+        if (!service.getVendaById(id).isPresent()) {
+            return new ResponseEntity("Venda não encontrada", HttpStatus.NOT_FOUND);
+        }
+        try {
+            Venda venda = converter(dto);
+            venda.setId(id);
+
+            Cliente cliente = clienteService.salvar(venda.getCliente());
+            venda.setCliente(cliente);
+
+            Vendedor vendedor = vendedorService.salvar(venda.getVendedor());
+            venda.setVendedor(vendedor);
+
+            service.salvar(venda);
+            return ResponseEntity.ok(venda);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity excluir(@PathVariable("id") Long id) {
+        Optional<Venda> venda = service.getVendaById(id);
+        if (!venda.isPresent()) {
+            return new ResponseEntity("Venda não encontrada", HttpStatus.NOT_FOUND);
+        }
+        try {
+            service.excluir(venda.get());
+            return new ResponseEntity(HttpStatus.NO_CONTENT);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

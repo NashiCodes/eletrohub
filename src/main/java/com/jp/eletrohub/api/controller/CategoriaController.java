@@ -7,6 +7,7 @@ import com.jp.eletrohub.service.CategoriaService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,8 +19,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CategoriaController {
 
-    private final @Nonnull CategoriaService service;
+    private final CategoriaService service;
 
+    public CategoriaController(@Nonnull CategoriaService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public ResponseEntity get() {
@@ -42,6 +46,36 @@ public class CategoriaController {
             Categoria categoria = converter(dto);
             categoria = service.salvar(categoria);
             return ResponseEntity.status(201).body(categoria);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+
+    @PutMapping("{id}")
+    public ResponseEntity atualizar(@PathVariable("id") Long id, CategoriaDTO dto) {
+        if (!service.getCategoriaById(id).isPresent()) {
+            return new ResponseEntity("Categoria não encontrada", HttpStatus.NOT_FOUND);
+        }
+        try {
+            Categoria categoria = converter(dto);
+            categoria.setId(id);
+            service.salvar(categoria);
+            return ResponseEntity.ok(categoria);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity excluir(@PathVariable("id") Long id) {
+        Optional<Categoria> categoria = service.getCategoriaById(id);
+        if (!categoria.isPresent()) {
+            return new ResponseEntity("Aluno não encontrado", HttpStatus.NOT_FOUND);
+        }
+        try {
+            service.excluir(categoria.get());
+            return new ResponseEntity(HttpStatus.NO_CONTENT);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

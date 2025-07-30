@@ -7,6 +7,7 @@ import com.jp.eletrohub.service.VendedorService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +19,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class VendedorController {
 
-    private final @Nonnull VendedorService service;
+    private final VendedorService service;
+
+    public VendedorController(@Nonnull VendedorService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public ResponseEntity get() {
@@ -41,6 +46,35 @@ public class VendedorController {
             Vendedor vendedor = converter(dto);
             vendedor = service.salvar(vendedor);
             return ResponseEntity.status(201).body(vendedor);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity atualizar(@PathVariable("id") Long id, VendedorDTO dto) {
+        if (!service.getVendedorById(id).isPresent()) {
+            return new ResponseEntity("Vendedor não encontrado", HttpStatus.NOT_FOUND);
+        }
+        try {
+            Vendedor vendedor = converter(dto);
+            vendedor.setId(id);
+            service.salvar(vendedor);
+            return ResponseEntity.ok(vendedor);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity excluir(@PathVariable("id") Long id) {
+        Optional<Vendedor> vendedor = service.getVendedorById(id);
+        if (!vendedor.isPresent()) {
+            return new ResponseEntity("Vendedor não encontrado", HttpStatus.NOT_FOUND);
+        }
+        try {
+            service.excluir(vendedor.get());
+            return new ResponseEntity(HttpStatus.NO_CONTENT);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

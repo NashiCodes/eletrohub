@@ -7,6 +7,7 @@ import com.jp.eletrohub.service.GerenteService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -45,6 +46,36 @@ public class GerenteController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @PutMapping("{id}")
+    public ResponseEntity atualizar(@PathVariable("id") Long id, GerenteDTO dto) {
+        if (!service.getGerenteById(id).isPresent()) {
+            return new ResponseEntity("Gerente não encontrado", HttpStatus.NOT_FOUND);
+        }
+        try {
+            Gerente gerente = converter(dto);
+            gerente.setId(id);
+            service.salvar(gerente);
+            return ResponseEntity.ok(gerente);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity excluir(@PathVariable("id") Long id) {
+        Optional<Aluno> aluno = service.getAlunoById(id);
+        if (!aluno.isPresent()) {
+            return new ResponseEntity("Aluno não encontrado", HttpStatus.NOT_FOUND);
+        }
+        try {
+            service.excluir(aluno.get());
+            return new ResponseEntity(HttpStatus.NO_CONTENT);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
     private Gerente converter(GerenteDTO dto) {
         ModelMapper modelMapper = new ModelMapper();

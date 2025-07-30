@@ -7,6 +7,7 @@ import com.jp.eletrohub.service.TecnicoService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,7 +19,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TecnicoController {
 
-    private final @Nonnull TecnicoService service;
+    private final TecnicoService service;
+
+    public TecnicoController(@Nonnull TecnicoService service) {
+        this.service = service;
+    }
 
     @GetMapping
     public ResponseEntity get() {
@@ -41,6 +46,35 @@ public class TecnicoController {
             Tecnico tecnico = converter(dto);
             tecnico = service.salvar(tecnico);
             return ResponseEntity.status(201).body(tecnico);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("{id}")
+    public ResponseEntity atualizar(@PathVariable("id") Long id, TecnicoDTO dto) {
+        if (!service.getTecnicoById(id).isPresent()) {
+            return new ResponseEntity("Técnico não encontrado", HttpStatus.NOT_FOUND);
+        }
+        try {
+            Tecnico tecnico = converter(dto);
+            tecnico.setId(id);
+            service.salvar(tecnico);
+            return ResponseEntity.ok(tecnico);
+        } catch (RegraNegocioException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("{id}")
+    public ResponseEntity excluir(@PathVariable("id") Long id) {
+        Optional<Tecnico> tecnico = service.getTecnicoById(id);
+        if (!tecnico.isPresent()) {
+            return new ResponseEntity("Técnico não encontrado", HttpStatus.NOT_FOUND);
+        }
+        try {
+            service.excluir(tecnico.get());
+            return new ResponseEntity(HttpStatus.NO_CONTENT);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
