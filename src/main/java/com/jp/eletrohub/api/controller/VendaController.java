@@ -51,7 +51,7 @@ public class VendaController {
             Venda venda = converter(dto);
             venda = service.salvar(venda);
 
-            Categoria categoria = categoriaService.salvar(produto.getCategoria());
+            Categoria categoria = categoriaService.save(produto.getCategoria());
             categoria.setCategoria(categoria);
 
             return ResponseEntity.status(201).body(venda);
@@ -69,7 +69,7 @@ public class VendaController {
             Venda venda = converter(dto);
             venda.setId(id);
 
-            Cliente cliente = clienteService.salvar(venda.getCliente());
+            Cliente cliente = clienteService.save(venda.getCliente());
             venda.setCliente(cliente);
 
             Vendedor vendedor = vendedorService.salvar(venda.getVendedor());

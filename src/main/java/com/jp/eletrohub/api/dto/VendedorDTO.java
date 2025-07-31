@@ -3,11 +3,13 @@ package com.jp.eletrohub.api.dto;
 
 import com.jp.eletrohub.model.entity.Vendedor;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.modelmapper.ModelMapper;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class VendedorDTO {
@@ -17,7 +19,6 @@ public class VendedorDTO {
 
     public static VendedorDTO create(Vendedor vendedor) {
         ModelMapper modelMapper = new ModelMapper();
-        VendedorDTO dto = modelMapper.map(vendedor, VendedorDTO.class);
-        return dto;
+        return modelMapper.map(vendedor, VendedorDTO.class);
     }
 }

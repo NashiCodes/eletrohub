@@ -6,42 +6,41 @@ import com.jp.eletrohub.model.entity.Cliente;
 import com.jp.eletrohub.service.ClienteService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/clientes")
 @RequiredArgsConstructor
 public class ClienteController {
-
-    private final ClienteService service;
+    private final @Nonnull ClienteService clienteService;
 
     @GetMapping
-    public ResponseEntity get() {
-        List<Cliente> clientes = service.getClientes();
-        return ResponseEntity.ok(clientes);
+    @Transactional
+    public ResponseEntity<List<ClienteDTO>> get() {
+        var clientes = clienteService.list();
+        return clientes.isEmpty() ?
+                ResponseEntity.status(HttpStatus.NO_CONTENT).build() :
+                ResponseEntity.ok(clientes);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity get(@PathVariable("id") Long id) {
-        Optional<Cliente> cliente = service.getClienteById(id);
-        if (!cliente.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(cliente.get());
+    public ResponseEntity<ClienteDTO> get(@PathVariable("id") Long id) {
+        var cliente = clienteService.findById(id);
+        return cliente
+                .map(value -> ResponseEntity.ok(ClienteDTO.create(value)))
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
     }
 
     @PostMapping
-    public ResponseEntity post(@RequestBody ClienteDTO dto) {
+    public ResponseEntity<Object> post(@RequestBody Cliente cliente) {
         try {
-            Cliente cliente = converter(dto);
-            cliente = service.salvar(cliente);
-            return ResponseEntity.status(201).body(cliente);
+            var dto = ClienteDTO.create(clienteService.save(cliente));
+            return ResponseEntity.status(201).body(dto);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -49,37 +48,30 @@ public class ClienteController {
 
 
     @PutMapping("{id}")
-    public ResponseEntity atualizar(@PathVariable("id") Long id, ClienteDTO dto) {
-        if (!service.getClienteById(id).isPresent()) {
-            return new ResponseEntity("Cliente não encontrado", HttpStatus.NOT_FOUND);
+    public ResponseEntity<Object> atualizar(@PathVariable("id") Long id, Cliente cliente) {
+        if (clienteService.findById(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
         try {
-            Cliente cliente = converter(dto);
             cliente.setId(id);
-            service.salvar(cliente);
-            return ResponseEntity.ok(cliente);
+            var dto = ClienteDTO.create(clienteService.save(cliente));
+            return ResponseEntity.ok(dto);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity excluir(@PathVariable("id") Long id) {
-        Optional<Cliente> cliente = service.getClienteById(id);
-        if (!cliente.isPresent()) {
-            return new ResponseEntity("Cliente não encontrado", HttpStatus.NOT_FOUND);
+    public ResponseEntity<Object> excluir(@PathVariable("id") Long id) {
+        var cliente = clienteService.findById(id);
+        if (cliente.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
         try {
-            service.excluir(cliente.get());
-            return new ResponseEntity(HttpStatus.NO_CONTENT);
+            clienteService.excluir(cliente.get());
+            return ResponseEntity.noContent().build();
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-    }
-
-    private Cliente converter(ClienteDTO dto) {
-        ModelMapper modelMapper = new ModelMapper();
-        Cliente cliente = modelMapper.map(dto, Cliente.class);
-        return cliente;
     }
 }

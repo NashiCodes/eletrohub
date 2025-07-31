@@ -1,9 +1,12 @@
 package com.jp.eletrohub.api.dto;
 
 import com.jp.eletrohub.model.entity.Tecnico;
-import com.jp.eletrohub.model.entity.Vendedor;
+import lombok.Getter;
+import lombok.Setter;
 import org.modelmapper.ModelMapper;
 
+@Getter
+@Setter
 public class TecnicoDTO {
     private Long id;
     private String nome;

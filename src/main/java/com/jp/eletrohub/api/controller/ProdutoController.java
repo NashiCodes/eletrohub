@@ -6,7 +6,6 @@ import com.jp.eletrohub.model.entity.Categoria;
 import com.jp.eletrohub.model.entity.Produto;
 import com.jp.eletrohub.service.CategoriaService;
 import com.jp.eletrohub.service.ProdutoService;
-import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -58,7 +57,7 @@ public class ProdutoController {
         try {
             Produto produto = converter(dto);
             produto.setId(id);
-            Categoria categoria = categoriaService.salvar(produto.getCategoria());
+            Categoria categoria = categoriaService.save(produto.getCategoria());
             produto.setCategoria(categoria);
             service.salvar(produto);
             return ResponseEntity.ok(produto);
