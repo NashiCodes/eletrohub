@@ -16,8 +16,8 @@ public class Produto {
     private Long id;
 
     private String nome;
-    private double valor;
-    private double quantidade;
+    private Double valor;
+    private Double quantidade;
 
     @ManyToOne
     private Categoria categoria;
