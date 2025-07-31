@@ -37,7 +37,7 @@ public class GerenteController {
     }
 
     @PostMapping
-    public ResponseEntity post(@RequestBody GerenteDTO dto) {
+    public ResponseEntity post(GerenteDTO dto) {
         try {
             Gerente gerente = converter(dto);
             gerente = service.salvar(gerente);
@@ -64,12 +64,12 @@ public class GerenteController {
 
     @DeleteMapping("{id}")
     public ResponseEntity excluir(@PathVariable("id") Long id) {
-        Optional<Aluno> aluno = service.getAlunoById(id);
-        if (!aluno.isPresent()) {
-            return new ResponseEntity("Aluno não encontrado", HttpStatus.NOT_FOUND);
+        Optional<Gerente> gerente = service.getGerenteById(id);
+        if (!gerente.isPresent()) {
+            return new ResponseEntity("Gerente não encontrado", HttpStatus.NOT_FOUND);
         }
         try {
-            service.excluir(aluno.get());
+            service.excluir(gerente.get());
             return new ResponseEntity(HttpStatus.NO_CONTENT);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

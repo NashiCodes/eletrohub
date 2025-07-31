@@ -39,7 +39,7 @@ public class ProdutoController {
     }
 
     @PostMapping
-    public ResponseEntity post(@RequestBody ProdutoDTO dto) {
+    public ResponseEntity post(ProdutoDTO dto) {
         try {
             Produto produto = converter(dto);
             produto = service.salvar(produto);

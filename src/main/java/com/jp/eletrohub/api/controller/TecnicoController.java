@@ -37,7 +37,7 @@ public class TecnicoController {
     }
 
     @PostMapping
-    public ResponseEntity post(@RequestBody TecnicoDTO dto) {
+    public ResponseEntity post(TecnicoDTO dto) {
         try {
             Tecnico tecnico = converter(dto);
             tecnico = service.salvar(tecnico);

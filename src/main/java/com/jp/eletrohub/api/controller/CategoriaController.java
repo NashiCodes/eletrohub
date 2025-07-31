@@ -5,6 +5,7 @@ import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.Categoria;
 import com.jp.eletrohub.service.CategoriaService;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,9 +36,10 @@ public class CategoriaController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> post(@RequestBody CategoriaDTO dto) {
+    public ResponseEntity post(CategoriaDTO dto) {
         try {
-            Categoria categoria = service.save(dto);
+            Categoria categoria = converter(dto);
+            categoria = service.salvar(categoria);
             return ResponseEntity.status(201).body(categoria);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -64,7 +66,7 @@ public class CategoriaController {
     public ResponseEntity excluir(@PathVariable("id") Long id) {
         Optional<Categoria> categoria = service.findById(id);
         if (!categoria.isPresent()) {
-            return new ResponseEntity("Aluno não encontrado", HttpStatus.NOT_FOUND);
+            return new ResponseEntity("Categoria não encontrada", HttpStatus.NOT_FOUND);
         }
         try {
             service.delete(categoria.get());
@@ -72,6 +74,12 @@ public class CategoriaController {
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
+    }
+
+    public Categoria converter(CategoriaDTO dto) {
+        ModelMapper modelMapper = new ModelMapper();
+        Categoria categoria = modelMapper.map(dto, Categoria.class);
+        return categoria;
     }
 
 }

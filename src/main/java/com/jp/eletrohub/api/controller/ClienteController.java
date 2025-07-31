@@ -3,6 +3,7 @@ package com.jp.eletrohub.api.controller;
 import com.jp.eletrohub.api.dto.ClienteDTO;
 import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.Cliente;
+import com.jp.eletrohub.model.entity.Gerente;
 import com.jp.eletrohub.service.ClienteService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
@@ -37,9 +38,10 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<Object> post(@RequestBody Cliente cliente) {
+    public ResponseEntity post(ClienteDTO dto) {
         try {
-            var dto = ClienteDTO.create(clienteService.save(cliente));
+            Gerente gerente = converter(dto);
+            gerente = service.salvar(gerente);
             return ResponseEntity.status(201).body(dto);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

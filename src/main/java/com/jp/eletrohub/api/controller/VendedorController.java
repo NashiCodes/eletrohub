@@ -38,7 +38,7 @@ public class VendedorController {
     }
 
     @PostMapping
-    public ResponseEntity post(@RequestBody VendedorDTO dto) {
+    public ResponseEntity post(VendedorDTO dto) {
         try {
             Vendedor vendedor = converter(dto);
             vendedor = service.salvar(vendedor);
