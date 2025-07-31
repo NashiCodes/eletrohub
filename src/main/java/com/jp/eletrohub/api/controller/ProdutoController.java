@@ -24,11 +24,6 @@ public class ProdutoController {
     private final ProdutoService service;
     private final CategoriaService categoriaService;
 
-    public ProdutoController(ProdutoService service, CategoriaService categoriaService) {
-        this.service = service;
-        this.categoriaService = categoriaService;
-    }
-
     @GetMapping
     public ResponseEntity get() {
         List<Produto> produtos = service.getProdutos();

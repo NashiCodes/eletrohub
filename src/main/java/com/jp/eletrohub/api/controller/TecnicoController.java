@@ -21,10 +21,6 @@ public class TecnicoController {
 
     private final TecnicoService service;
 
-    public TecnicoController(@Nonnull TecnicoService service) {
-        this.service = service;
-    }
-
     @GetMapping
     public ResponseEntity get() {
         List<Tecnico> clientes = service.getTecnicos();

@@ -6,7 +6,10 @@ import com.jp.eletrohub.model.entity.Categoria;
 import com.jp.eletrohub.model.entity.Cliente;
 import com.jp.eletrohub.model.entity.Venda;
 import com.jp.eletrohub.model.entity.Vendedor;
+import com.jp.eletrohub.service.CategoriaService;
+import com.jp.eletrohub.service.ClienteService;
 import com.jp.eletrohub.service.VendaService;
+import com.jp.eletrohub.service.VendedorService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -23,6 +26,9 @@ import java.util.Optional;
 public class VendaController {
 
     private final @Nonnull VendaService service;
+    private final @Nonnull CategoriaService categoriaService;
+    private final @Nonnull ClienteService clienteService;
+    private final @Nonnull VendedorService vendedorService;
 
     @GetMapping
     public ResponseEntity get() {

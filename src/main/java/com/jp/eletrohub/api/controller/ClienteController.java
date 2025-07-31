@@ -21,10 +21,6 @@ public class ClienteController {
 
     private final ClienteService service;
 
-    public ClienteController(@Nonnull ClienteService service) {
-        this.service = service;
-    }
-
     @GetMapping
     public ResponseEntity get() {
         List<Cliente> clientes = service.getClientes();

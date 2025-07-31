@@ -7,6 +7,7 @@ import com.jp.eletrohub.service.VendedorService;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,10 +21,6 @@ import java.util.Optional;
 public class VendedorController {
 
     private final VendedorService service;
-
-    public VendedorController(@Nonnull VendedorService service) {
-        this.service = service;
-    }
 
     @GetMapping
     public ResponseEntity get() {

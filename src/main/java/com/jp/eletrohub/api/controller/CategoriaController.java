@@ -21,10 +21,6 @@ public class CategoriaController {
 
     private final CategoriaService service;
 
-    public CategoriaController(@Nonnull CategoriaService service) {
-        this.service = service;
-    }
-
     @GetMapping
     public ResponseEntity get() {
         List<Categoria> categorias = service.getCategorias();
