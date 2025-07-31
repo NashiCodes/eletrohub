@@ -42,7 +42,7 @@ public class VendaItemController {
     }
 
     @PostMapping()
-    public ResponseEntity post(VendaItemDTO dto) {
+    public ResponseEntity post(@RequestBody VendaItemDTO dto) {
         try {
             VendaItem vendaItem = converter(dto);
             vendaItem = service.salvar(vendaItem);
@@ -53,7 +53,7 @@ public class VendaItemController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity atualizar(@PathVariable("id") Long id, VendaItemDTO dto) {
+    public ResponseEntity atualizar(@PathVariable("id") Long id, @RequestBody VendaItemDTO dto) {
         if (!service.getVendaItemById(id).isPresent()) {
             return new ResponseEntity("Venda não encontrada", HttpStatus.NOT_FOUND);
         }

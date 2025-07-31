@@ -39,8 +39,8 @@ public class TecnicoController {
         return ResponseEntity.ok(tecnico.map(TecnicoDTO::create));
     }
 
-    @PostMapping
-    public ResponseEntity post(TecnicoDTO dto) {
+    @PostMapping()
+    public ResponseEntity post(@RequestBody TecnicoDTO dto) {
         try {
             Tecnico tecnico = converter(dto);
             tecnico = service.salvar(tecnico);
@@ -51,7 +51,7 @@ public class TecnicoController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity atualizar(@PathVariable("id") Long id, TecnicoDTO dto) {
+    public ResponseEntity atualizar(@PathVariable("id") Long id, @RequestBody TecnicoDTO dto) {
         if (!service.getTecnicoById(id).isPresent()) {
             return new ResponseEntity("Técnico não encontrado", HttpStatus.NOT_FOUND);
         }

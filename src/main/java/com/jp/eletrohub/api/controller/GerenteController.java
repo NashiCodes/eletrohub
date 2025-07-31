@@ -40,8 +40,8 @@ public class GerenteController {
         return ResponseEntity.ok(gerente.map(GerenteDTO::create));
     }
 
-    @PostMapping
-    public ResponseEntity post(GerenteDTO dto) {
+    @PostMapping()
+    public ResponseEntity post(@RequestBody GerenteDTO dto) {
         try {
             Gerente gerente = converter(dto);
             gerente = service.salvar(gerente);
@@ -52,7 +52,7 @@ public class GerenteController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity atualizar(@PathVariable("id") Long id, GerenteDTO dto) {
+    public ResponseEntity atualizar(@PathVariable("id") Long id, @RequestBody GerenteDTO dto) {
         if (!service.getGerenteById(id).isPresent()) {
             return new ResponseEntity("Gerente não encontrado", HttpStatus.NOT_FOUND);
         }

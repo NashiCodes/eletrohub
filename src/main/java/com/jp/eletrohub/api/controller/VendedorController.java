@@ -41,8 +41,8 @@ public class VendedorController {
         return ResponseEntity.ok(vendedor.map(VendedorDTO::create));
     }
 
-    @PostMapping
-    public ResponseEntity post(VendedorDTO dto) {
+    @PostMapping()
+    public ResponseEntity post(@RequestBody VendedorDTO dto) {
         try {
             Vendedor vendedor = converter(dto);
             vendedor = service.salvar(vendedor);
@@ -53,7 +53,7 @@ public class VendedorController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity atualizar(@PathVariable("id") Long id, VendedorDTO dto) {
+    public ResponseEntity atualizar(@PathVariable("id") Long id, @RequestBody VendedorDTO dto) {
         if (!service.getVendedorById(id).isPresent()) {
             return new ResponseEntity("Vendedor não encontrado", HttpStatus.NOT_FOUND);
         }

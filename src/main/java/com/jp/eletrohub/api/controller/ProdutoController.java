@@ -41,8 +41,8 @@ public class ProdutoController {
         return ResponseEntity.ok(produto.map(ProdutoDTO::create));
     }
 
-    @PostMapping
-    public ResponseEntity post(ProdutoDTO dto) {
+    @PostMapping()
+    public ResponseEntity post(@RequestBody ProdutoDTO dto) {
         try {
             Produto produto = converter(dto);
             produto = service.salvar(produto);
@@ -53,7 +53,7 @@ public class ProdutoController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity atualizar(@PathVariable("id") Long id, ProdutoDTO dto) {
+    public ResponseEntity atualizar(@PathVariable("id") Long id, @RequestBody ProdutoDTO dto) {
         if (!service.getProdutoById(id).isPresent()) {
             return new ResponseEntity("Produto não encontrado", HttpStatus.NOT_FOUND);
         }
