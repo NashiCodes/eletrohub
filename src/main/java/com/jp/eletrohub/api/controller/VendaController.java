@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 public class VendaController {
 
     private final VendaService service;
-    private final CategoriaService categoriaService;
     private final ClienteService clienteService;
     private final VendedorService vendedorService;
 
@@ -98,6 +97,25 @@ public class VendaController {
     private Venda converter(VendaDTO dto) {
         ModelMapper modelMapper = new ModelMapper();
         Venda venda = modelMapper.map(dto, Venda.class);
+
+        if (dto.getIdVendedor() != null) {
+            Optional<Vendedor> vendedor = vendedorService.getVendedorById(dto.getIdVendedor());
+            if (!vendedor.isPresent()) {
+                venda.setVendedor(null);
+            } else {
+                venda.setVendedor(vendedor.get());
+            }
+        }
+
+        if (dto.getIdCliente() != null) {
+            Optional<Cliente> cliente = clienteService.getClienteById(dto.getIdCliente());
+            if (!cliente.isPresent()) {
+                venda.setCliente(null);
+            } else {
+                venda.setCliente(cliente.get());
+            }
+        }
+
         return venda;
     }
 }

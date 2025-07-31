@@ -88,8 +88,16 @@ public class ProdutoController {
     private Produto converter(ProdutoDTO dto) {
         ModelMapper modelMapper = new ModelMapper();
         Produto produto = modelMapper.map(dto, Produto.class);
-        Categoria categoria = modelMapper.map(dto, Categoria.class);
-        produto.setCategoria(categoria);
+
+        if (dto.getIdCategoria() != null) {
+            Optional<Categoria> categoria = categoriaService.getCategoriaById(dto.getIdCategoria());
+            if (!categoria.isPresent()) {
+                produto.setCategoria(null);
+            } else {
+                produto.setCategoria(categoria.get());
+            }
+        }
+
         return produto;
     }
 }
