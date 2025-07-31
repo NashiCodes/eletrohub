@@ -39,8 +39,16 @@ public class VendaService {
     }
 
     public void validar(Venda venda) {
-        if (venda.getCliente() == null) {
-            throw new RegraNegocioException("Cliente da venda é obrigatório");
+        if (venda.getData() == null) {
+            throw new RegraNegocioException("Data inválida");
+        }
+
+        if (venda.getVendedor() == null || venda.getVendedor().getId() == null || venda.getVendedor().getId() == 0) {
+            throw new RegraNegocioException("Vendedor inválida");
+        }
+
+        if (venda.getCliente() == null || venda.getCliente().getId() == null || venda.getCliente().getId() == 0) {
+            throw new RegraNegocioException("Cliente inválido");
         }
     }
 }

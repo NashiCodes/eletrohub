@@ -42,5 +42,17 @@ public class ProdutoService {
         if (produto.getNome() == null || produto.getNome().trim().isEmpty()) {
             throw new RegraNegocioException("Nome do produto inválido");
         }
+
+        if (produto.getValor() == null || produto.getValor() <= 0) {
+            throw new RegraNegocioException("Valor do produto inválido");
+        }
+
+        if (produto.getQuantidade() == null || produto.getValor() < 0) {
+            throw new RegraNegocioException("Quantidade do produto inválida");
+        }
+
+        if (produto.getCategoria() == null || produto.getCategoria().getId() == null || produto.getCategoria().getId() == 0) {
+            throw new RegraNegocioException("Categoria inválida");
+        }
     }
 }

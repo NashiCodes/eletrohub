@@ -39,11 +39,21 @@ public class VendaItemService {
     }
 
     public void validar(VendaItem vendaItem) {
-        if (vendaItem.getProduto() == null) {
-            throw new RegraNegocioException("Produto do item da venda é obrigatório");
+
+        if (vendaItem.getValor() == null || vendaItem.getValor() <= 0) {
+            throw new RegraNegocioException("Valor do item inválido");
         }
-        if (vendaItem.getQuantidade() <= 0) {
-            throw new RegraNegocioException("Quantidade inválida para o item da venda");
+
+        if (vendaItem.getQuantidade() == null || vendaItem.getValor() < 0) {
+            throw new RegraNegocioException("Quantidade do item inválida");
+        }
+
+        if (vendaItem.getVenda() == null || vendaItem.getVenda().getId() == null || vendaItem.getVenda().getId() == 0) {
+            throw new RegraNegocioException("Venda inválida");
+        }
+
+        if (vendaItem.getProduto() == null || vendaItem.getProduto().getId() == null || vendaItem.getProduto().getId() == 0) {
+            throw new RegraNegocioException("Produto inválido");
         }
     }
 }

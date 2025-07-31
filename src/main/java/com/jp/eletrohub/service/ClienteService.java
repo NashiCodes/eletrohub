@@ -42,5 +42,9 @@ public class ClienteService {
         if (cliente.getNome() == null || cliente.getNome().trim().isEmpty()) {
             throw new RegraNegocioException("Nome inválido");
         }
+
+        if (cliente.getEmail() == null || cliente.getEmail().trim().isEmpty()) {
+            throw new RegraNegocioException("Email inválido");
+        }
     }
 }
