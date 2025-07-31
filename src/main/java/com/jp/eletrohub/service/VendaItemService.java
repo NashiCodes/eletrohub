@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.VendaItem;
 import com.jp.eletrohub.model.repository.VendaItemRepository;
 import org.springframework.stereotype.Service;
@@ -41,7 +42,7 @@ public class VendaItemService {
         if (vendaItem.getProduto() == null) {
             throw new RegraNegocioException("Produto do item da venda é obrigatório");
         }
-        if (vendaItem.getQuantidade() == null || vendaItem.getQuantidade() <= 0) {
+        if (vendaItem.getQuantidade() <= 0) {
             throw new RegraNegocioException("Quantidade inválida para o item da venda");
         }
     }

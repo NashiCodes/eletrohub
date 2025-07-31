@@ -42,8 +42,5 @@ public class VendaService {
         if (venda.getCliente() == null) {
             throw new RegraNegocioException("Cliente da venda é obrigatório");
         }
-        if (venda.getItens() == null || venda.getItens().isEmpty()) {
-            throw new RegraNegocioException("Venda deve conter ao menos um item");
-        }
     }
 }
