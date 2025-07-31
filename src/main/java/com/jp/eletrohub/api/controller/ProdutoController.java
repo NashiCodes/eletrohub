@@ -60,10 +60,6 @@ public class ProdutoController {
         try {
             Produto produto = converter(dto);
             produto.setId(id);
-
-            Categoria categoria = categoriaService.salvar(produto.getCategoria());
-            produto.setCategoria(categoria);
-
             service.salvar(produto);
             return ResponseEntity.ok(produto);
         } catch (RegraNegocioException e) {

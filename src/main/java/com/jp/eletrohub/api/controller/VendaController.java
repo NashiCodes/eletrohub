@@ -66,13 +66,6 @@ public class VendaController {
         try {
             Venda venda = converter(dto);
             venda.setId(id);
-
-            Cliente cliente = clienteService.salvar(venda.getCliente());
-            venda.setCliente(cliente);
-
-            Vendedor vendedor = vendedorService.salvar(venda.getVendedor());
-            venda.setVendedor(vendedor);
-
             service.salvar(venda);
             return ResponseEntity.ok(venda);
         } catch (RegraNegocioException e) {
