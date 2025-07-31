@@ -1,8 +1,14 @@
 package com.jp.eletrohub.api.dto;
 
 import com.jp.eletrohub.model.entity.Gerente;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class GerenteDTO {
     private Long id;
     private String nome;

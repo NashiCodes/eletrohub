@@ -1,8 +1,14 @@
 package com.jp.eletrohub.api.dto;
 
 import com.jp.eletrohub.model.entity.Produto;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
 
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProdutoDTO {
     private Long id;
 
