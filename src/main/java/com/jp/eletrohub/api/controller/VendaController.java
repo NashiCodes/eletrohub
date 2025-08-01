@@ -1,18 +1,11 @@
 package com.jp.eletrohub.api.controller;
 
-import com.jp.eletrohub.api.dto.ClienteDTO;
-import com.jp.eletrohub.api.dto.GerenteDTO;
 import com.jp.eletrohub.api.dto.VendaDTO;
 import com.jp.eletrohub.exception.RegraNegocioException;
-import com.jp.eletrohub.model.entity.Categoria;
-import com.jp.eletrohub.model.entity.Cliente;
 import com.jp.eletrohub.model.entity.Venda;
-import com.jp.eletrohub.model.entity.Vendedor;
-import com.jp.eletrohub.service.CategoriaService;
 import com.jp.eletrohub.service.ClienteService;
 import com.jp.eletrohub.service.VendaService;
 import com.jp.eletrohub.service.VendedorService;
-import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -20,53 +13,48 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/vendas")
 @RequiredArgsConstructor
 public class VendaController {
 
-    private final VendaService service;
+    private final VendaService vendaService;
     private final ClienteService clienteService;
     private final VendedorService vendedorService;
 
     @GetMapping
-    public ResponseEntity get() {
-        List<Venda> vendas = service.getVendas();
-        return ResponseEntity.ok(vendas.stream().map(VendaDTO::create).collect(Collectors.toList()));
+    public ResponseEntity<List<VendaDTO>> get() {
+        var vendas = vendaService.getVendas().stream().map(VendaDTO::create).toList();
+        return ResponseEntity.ok(vendas);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity get(@PathVariable("id") Long id) {
-        Optional<Venda> venda = service.getVendaById(id);
-        if (!venda.isPresent()) {
-            return new ResponseEntity("Venda não encontrada", HttpStatus.NOT_FOUND);
-        }
-        return ResponseEntity.ok(venda.map(VendaDTO::create));
+    public ResponseEntity<VendaDTO> get(@PathVariable("id") Long id) {
+        var venda = vendaService.getVendaById(id).map(VendaDTO::create).orElseThrow(() -> new RegraNegocioException("Venda não encontrada"));
+        return ResponseEntity.ok(venda);
     }
 
     @PostMapping()
-    public ResponseEntity post(@RequestBody VendaDTO dto) {
+    public ResponseEntity<Object> post(@RequestBody VendaDTO dto) {
         try {
             Venda venda = converter(dto);
-            venda = service.salvar(venda);
-            return new ResponseEntity(venda, HttpStatus.CREATED);
+            venda = vendaService.salvar(venda);
+            return ResponseEntity.status(HttpStatus.CREATED).body(VendaDTO.create(venda));
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("{id}")
-    public ResponseEntity atualizar(@PathVariable("id") Long id, @RequestBody VendaDTO dto) {
-        if (!service.getVendaById(id).isPresent()) {
-            return new ResponseEntity("Venda não encontrada", HttpStatus.NOT_FOUND);
+    public ResponseEntity<Object> update(@PathVariable("id") Long id, @RequestBody VendaDTO dto) {
+        if (vendaService.getVendaById(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
         try {
             Venda venda = converter(dto);
             venda.setId(id);
-            service.salvar(venda);
+            vendaService.salvar(venda);
             return ResponseEntity.ok(venda);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -74,14 +62,14 @@ public class VendaController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity excluir(@PathVariable("id") Long id) {
-        Optional<Venda> venda = service.getVendaById(id);
-        if (!venda.isPresent()) {
-            return new ResponseEntity("Venda não encontrada", HttpStatus.NOT_FOUND);
+    public ResponseEntity<Object> delete(@PathVariable("id") Long id) {
+        var venda = vendaService.getVendaById(id);
+        if (venda.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
         try {
-            service.excluir(venda.get());
-            return new ResponseEntity(HttpStatus.NO_CONTENT);
+            vendaService.delete(venda.get());
+            return ResponseEntity.ok().build();
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -92,8 +80,8 @@ public class VendaController {
         Venda venda = modelMapper.map(dto, Venda.class);
 
         if (dto.getIdVendedor() != null) {
-            Optional<Vendedor> vendedor = vendedorService.getVendedorById(dto.getIdVendedor());
-            if (!vendedor.isPresent()) {
+            var vendedor = vendedorService.findById(dto.getIdVendedor());
+            if (vendedor.isEmpty()) {
                 venda.setVendedor(null);
             } else {
                 venda.setVendedor(vendedor.get());
@@ -101,8 +89,8 @@ public class VendaController {
         }
 
         if (dto.getIdCliente() != null) {
-            Optional<Cliente> cliente = clienteService.getClienteById(dto.getIdCliente());
-            if (!cliente.isPresent()) {
+            var cliente = clienteService.findById(dto.getIdCliente());
+            if (cliente.isEmpty()) {
                 venda.setCliente(null);
             } else {
                 venda.setCliente(cliente.get());

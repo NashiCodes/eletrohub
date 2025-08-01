@@ -1,6 +1,7 @@
 package com.jp.eletrohub.api.dto;
 
 import com.jp.eletrohub.model.entity.Cliente;
+import jakarta.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,9 +19,13 @@ public class ClienteDTO {
     private String email;
 
 
-    public static ClienteDTO create(Cliente cliente) {
+    public static ClienteDTO create(@Nonnull Cliente cliente) {
         ModelMapper modelMapper = new ModelMapper();
-        ClienteDTO dto = modelMapper.map(cliente, ClienteDTO.class);
-        return dto;
+        return modelMapper.map(cliente, ClienteDTO.class);
+    }
+
+    public static Cliente toEntity(@Nonnull ClienteDTO dto) {
+        ModelMapper modelMapper = new ModelMapper();
+        return modelMapper.map(dto, Cliente.class);
     }
 }

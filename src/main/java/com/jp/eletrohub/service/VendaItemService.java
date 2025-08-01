@@ -1,44 +1,42 @@
 package com.jp.eletrohub.service;
 
+import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.model.entity.VendaItem;
+import com.jp.eletrohub.model.repository.VendaItemRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.jp.eletrohub.exception.RegraNegocioException;
-import com.jp.eletrohub.model.entity.VendaItem;
-import com.jp.eletrohub.model.repository.VendaItemRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 @Service
+@RequiredArgsConstructor
 public class VendaItemService {
-    private final VendaItemRepository repository;
+    private final VendaItemRepository vendaItemRepository;
 
-    public VendaItemService(VendaItemRepository repository) {
-        this.repository = repository;
+    public List<VendaItem> list() {
+        return vendaItemRepository.findAll();
     }
 
-    public List<VendaItem> getVendaItens() {
-        return repository.findAll();
-    }
-
-    public Optional<VendaItem> getVendaItemById(Long id) {
-        return repository.findById(id);
+    public Optional<VendaItem> findById(Long id) {
+        return vendaItemRepository.findById(id);
     }
 
     @Transactional
-    public VendaItem salvar(VendaItem vendaItem) {
-        validar(vendaItem);
-        return repository.save(vendaItem);
+    public VendaItem save(VendaItem vendaItem) {
+        validate(vendaItem);
+        return vendaItemRepository.save(vendaItem);
     }
 
     @Transactional
-    public void excluir(VendaItem vendaItem) {
+    public void delete(VendaItem vendaItem) {
         Objects.requireNonNull(vendaItem.getId());
-        repository.delete(vendaItem);
+        vendaItemRepository.delete(vendaItem);
     }
 
-    public void validar(VendaItem vendaItem) {
+    public void validate(VendaItem vendaItem) {
 
         if (vendaItem.getValor() == null || vendaItem.getValor() <= 0) {
             throw new RegraNegocioException("Valor do item inválido");

@@ -1,44 +1,42 @@
 package com.jp.eletrohub.service;
 
+import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.model.entity.Tecnico;
+import com.jp.eletrohub.model.repository.TecnicoRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.jp.eletrohub.exception.RegraNegocioException;
-import com.jp.eletrohub.model.entity.Tecnico;
-import com.jp.eletrohub.model.repository.TecnicoRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 @Service
+@RequiredArgsConstructor
 public class TecnicoService {
-    private final TecnicoRepository repository;
+    private final TecnicoRepository tecnicoRepository;
 
-    public TecnicoService(TecnicoRepository repository) {
-        this.repository = repository;
+    public List<Tecnico> list() {
+        return tecnicoRepository.findAll();
     }
 
-    public List<Tecnico> getTecnicos() {
-        return repository.findAll();
-    }
-
-    public Optional<Tecnico> getTecnicoById(Long id) {
-        return repository.findById(id);
+    public Optional<Tecnico> findById(Long id) {
+        return tecnicoRepository.findById(id);
     }
 
     @Transactional
-    public Tecnico salvar(Tecnico tecnico) {
-        validar(tecnico);
-        return repository.save(tecnico);
+    public Tecnico save(Tecnico tecnico) {
+        validate(tecnico);
+        return tecnicoRepository.save(tecnico);
     }
 
     @Transactional
-    public void excluir(Tecnico tecnico) {
+    public void delete(Tecnico tecnico) {
         Objects.requireNonNull(tecnico.getId());
-        repository.delete(tecnico);
+        tecnicoRepository.delete(tecnico);
     }
 
-    public void validar(Tecnico tecnico) {
+    public void validate(Tecnico tecnico) {
         if (tecnico.getNome() == null || tecnico.getNome().trim().isEmpty()) {
             throw new RegraNegocioException("Nome do técnico inválido");
         }

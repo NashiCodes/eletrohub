@@ -1,41 +1,39 @@
 package com.jp.eletrohub.service;
 
+import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.model.entity.Categoria;
+import com.jp.eletrohub.model.repository.CategoriaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.jp.eletrohub.exception.RegraNegocioException;
-import com.jp.eletrohub.model.entity.Categoria;
-import com.jp.eletrohub.model.repository.CategoriaRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 @Service
+@RequiredArgsConstructor
 public class CategoriaService {
-    private final CategoriaRepository repository;
+    private final CategoriaRepository categoriaRepository;
 
-    public CategoriaService(CategoriaRepository repository) {
-        this.repository = repository;
+    public List<Categoria> list() {
+        return categoriaRepository.findAll();
     }
 
-    public List<Categoria> getCategorias() {
-        return repository.findAll();
-    }
-
-    public Optional<Categoria> getCategoriaById(Long id) {
-        return repository.findById(id);
+    public Optional<Categoria> findById(Long id) {
+        return categoriaRepository.findById(id);
     }
 
     @Transactional
-    public Categoria salvar(Categoria categoria) {
+    public Categoria save(Categoria categoria) {
         validar(categoria);
-        return repository.save(categoria);
+        return categoriaRepository.save(categoria);
     }
 
     @Transactional
-    public void excluir(Categoria categoria) {
+    public void delete(Categoria categoria) {
         Objects.requireNonNull(categoria.getId());
-        repository.delete(categoria);
+        categoriaRepository.delete(categoria);
     }
 
     public void validar(Categoria categoria) {

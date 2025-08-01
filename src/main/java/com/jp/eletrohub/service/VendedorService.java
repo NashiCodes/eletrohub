@@ -1,44 +1,42 @@
 package com.jp.eletrohub.service;
 
+import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.model.entity.Vendedor;
+import com.jp.eletrohub.model.repository.VendedorRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.jp.eletrohub.exception.RegraNegocioException;
-import com.jp.eletrohub.model.entity.Vendedor;
-import com.jp.eletrohub.model.repository.VendedorRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 @Service
+@RequiredArgsConstructor
 public class VendedorService {
-    private final VendedorRepository repository;
+    private final VendedorRepository vendedorRepository;
 
-    public VendedorService(VendedorRepository repository) {
-        this.repository = repository;
+    public List<Vendedor> list() {
+        return vendedorRepository.findAll();
     }
 
-    public List<Vendedor> getVendedores() {
-        return repository.findAll();
-    }
-
-    public Optional<Vendedor> getVendedorById(Long id) {
-        return repository.findById(id);
+    public Optional<Vendedor> findById(Long id) {
+        return vendedorRepository.findById(id);
     }
 
     @Transactional
-    public Vendedor salvar(Vendedor vendedor) {
-        validar(vendedor);
-        return repository.save(vendedor);
+    public Vendedor save(Vendedor vendedor) {
+        validate(vendedor);
+        return vendedorRepository.save(vendedor);
     }
 
     @Transactional
-    public void excluir(Vendedor vendedor) {
+    public void delete(Vendedor vendedor) {
         Objects.requireNonNull(vendedor.getId());
-        repository.delete(vendedor);
+        vendedorRepository.delete(vendedor);
     }
 
-    public void validar(Vendedor vendedor) {
+    public void validate(Vendedor vendedor) {
         if (vendedor.getNome() == null || vendedor.getNome().trim().isEmpty()) {
             throw new RegraNegocioException("Nome do vendedor inválido");
         }

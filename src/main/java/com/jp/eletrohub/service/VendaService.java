@@ -1,44 +1,42 @@
 package com.jp.eletrohub.service;
 
+import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.model.entity.Venda;
+import com.jp.eletrohub.model.repository.VendaRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.jp.eletrohub.exception.RegraNegocioException;
-import com.jp.eletrohub.model.entity.Venda;
-import com.jp.eletrohub.model.repository.VendaRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 @Service
+@RequiredArgsConstructor
 public class VendaService {
-    private final VendaRepository repository;
-
-    public VendaService(VendaRepository repository) {
-        this.repository = repository;
-    }
+    private final VendaRepository vendaRepository;
 
     public List<Venda> getVendas() {
-        return repository.findAll();
+        return vendaRepository.findAll();
     }
 
     public Optional<Venda> getVendaById(Long id) {
-        return repository.findById(id);
+        return vendaRepository.findById(id);
     }
 
     @Transactional
     public Venda salvar(Venda venda) {
-        validar(venda);
-        return repository.save(venda);
+        validate(venda);
+        return vendaRepository.save(venda);
     }
 
     @Transactional
-    public void excluir(Venda venda) {
+    public void delete(Venda venda) {
         Objects.requireNonNull(venda.getId());
-        repository.delete(venda);
+        vendaRepository.delete(venda);
     }
 
-    public void validar(Venda venda) {
+    public void validate(Venda venda) {
         if (venda.getData() == null) {
             throw new RegraNegocioException("Data inválida");
         }

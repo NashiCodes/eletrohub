@@ -1,41 +1,39 @@
 package com.jp.eletrohub.service;
 
+import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.model.entity.Gerente;
+import com.jp.eletrohub.model.repository.GerenteRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import com.jp.eletrohub.exception.RegraNegocioException;
-import com.jp.eletrohub.model.entity.Gerente;
-import com.jp.eletrohub.model.repository.GerenteRepository;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 @Service
+@RequiredArgsConstructor
 public class GerenteService {
-    private final GerenteRepository repository;
+    private final GerenteRepository gerenteRepository;
 
-    public GerenteService(GerenteRepository repository) {
-        this.repository = repository;
+    public List<Gerente> list() {
+        return gerenteRepository.findAll();
     }
 
-    public List<Gerente> getGerentes() {
-        return repository.findAll();
-    }
-
-    public Optional<Gerente> getGerenteById(Long id) {
-        return repository.findById(id);
+    public Optional<Gerente> findById(Long id) {
+        return gerenteRepository.findById(id);
     }
 
     @Transactional
     public Gerente salvar(Gerente gerente) {
         validar(gerente);
-        return repository.save(gerente);
+        return gerenteRepository.save(gerente);
     }
 
     @Transactional
-    public void excluir(Gerente gerente) {
+    public void delete(Gerente gerente) {
         Objects.requireNonNull(gerente.getId());
-        repository.delete(gerente);
+        gerenteRepository.delete(gerente);
     }
 
     public void validar(Gerente gerente) {

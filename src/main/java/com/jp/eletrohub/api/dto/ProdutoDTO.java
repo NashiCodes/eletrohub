@@ -1,6 +1,7 @@
 package com.jp.eletrohub.api.dto;
 
 import com.jp.eletrohub.model.entity.Produto;
+import jakarta.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,7 +19,7 @@ public class ProdutoDTO {
     private Long idCategoria;
     private String nomeCategoria;
 
-    public static ProdutoDTO create(Produto produto) {
+    public static ProdutoDTO create(@Nonnull Produto produto) {
         ModelMapper modelMapper = new ModelMapper();
         ProdutoDTO dto = modelMapper.map(produto, ProdutoDTO.class);
         dto.nomeCategoria = produto.getCategoria().getNome();

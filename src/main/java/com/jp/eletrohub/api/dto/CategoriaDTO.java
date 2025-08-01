@@ -1,6 +1,7 @@
 package com.jp.eletrohub.api.dto;
 
 import com.jp.eletrohub.model.entity.Categoria;
+import jakarta.annotation.Nonnull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,9 +16,13 @@ public class CategoriaDTO {
     private String nome;
 
 
-    public static CategoriaDTO create(Categoria categoria) {
+    public static CategoriaDTO create(@Nonnull Categoria categoria) {
         ModelMapper modelMapper = new ModelMapper();
-        CategoriaDTO dto = modelMapper.map(categoria, CategoriaDTO.class);
-        return dto;
+        return modelMapper.map(categoria, CategoriaDTO.class);
+    }
+
+    public static Categoria toEntity(@Nonnull CategoriaDTO dto) {
+        ModelMapper modelMapper = new ModelMapper();
+        return modelMapper.map(dto, Categoria.class);
     }
 }
