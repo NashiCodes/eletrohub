@@ -1,13 +1,11 @@
 package com.jp.eletrohub.model.entity;
 
 import jakarta.persistence.Entity;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
-@Getter
-@Setter
+@Data
 public class Vendedor extends Funcionario {
-
-
 }

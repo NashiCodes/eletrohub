@@ -1,14 +1,16 @@
 package com.jp.eletrohub.api.dto;
 
 import com.jp.eletrohub.model.entity.Venda;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
 
 import java.util.Date;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class VendaDTO {
     private Long id;
     private Date data;

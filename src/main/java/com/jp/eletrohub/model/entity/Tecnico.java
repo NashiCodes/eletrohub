@@ -1,11 +1,11 @@
 package com.jp.eletrohub.model.entity;
 
 import jakarta.persistence.Entity;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
-@Getter
-@Setter
-public class Tecnico extends Funcionario{
+@Data
+public class Tecnico extends Funcionario {
 }

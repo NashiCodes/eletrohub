@@ -5,42 +5,39 @@ import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.Categoria;
 import com.jp.eletrohub.service.CategoriaService;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
+
+import static com.jp.eletrohub.api.dto.CategoriaDTO.toEntity;
 
 @RestController
 @RequestMapping("/api/v1/categorias")
 @RequiredArgsConstructor
 public class CategoriaController {
 
-    private final CategoriaService service;
+    private final CategoriaService categoriaService;
 
     @GetMapping
-    public ResponseEntity<List<CategoriaDTO>> get() {
-        var categorias = service.list();
-        return categorias.isEmpty() ?
-                ResponseEntity.notFound().build() : ResponseEntity.ok(categorias);
+    public ResponseEntity<List<CategoriaDTO>> list() {
+        return ResponseEntity.ok(categoriaService.list().stream().map(CategoriaDTO::create).toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CategoriaDTO> get(@PathVariable("id") Long id) {
-        var categoria = service.findById(id);
-        return categoria
-                .map(value -> ResponseEntity.ok(CategoriaDTO.create(value)))
-                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+    public ResponseEntity<CategoriaDTO> list(@PathVariable("id") Long id) {
+        var categoria = categoriaService.findById(id)
+                .map(CategoriaDTO::create);
+        return categoria.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
-    @PostMapping
-    public ResponseEntity post(CategoriaDTO dto) {
+    @PostMapping()
+    public ResponseEntity<Object> post(@RequestBody CategoriaDTO dto) {
         try {
-            Categoria categoria = converter(dto);
-            categoria = service.salvar(categoria);
-            return ResponseEntity.status(201).body(categoria);
+            Categoria categoria = toEntity(dto);
+            categoria = categoriaService.save(categoria);
+            return ResponseEntity.status(HttpStatus.CREATED).body(categoria);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -48,14 +45,14 @@ public class CategoriaController {
 
 
     @PutMapping("{id}")
-    public ResponseEntity atualizar(@PathVariable("id") Long id, CategoriaDTO dto) {
-        if (!service.findById(id).isPresent()) {
-            return new ResponseEntity("Categoria não encontrada", HttpStatus.NOT_FOUND);
+    public ResponseEntity<Object> update(@PathVariable("id") Long id, @RequestBody CategoriaDTO dto) {
+        if (categoriaService.findById(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
         try {
-            Categoria categoria = dto.toEntity();
+            Categoria categoria = toEntity(dto);
             categoria.setId(id);
-            service.save(categoria);
+            categoriaService.save(categoria);
             return ResponseEntity.ok(categoria);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -63,23 +60,18 @@ public class CategoriaController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity excluir(@PathVariable("id") Long id) {
-        Optional<Categoria> categoria = service.findById(id);
-        if (!categoria.isPresent()) {
-            return new ResponseEntity("Categoria não encontrada", HttpStatus.NOT_FOUND);
+    public ResponseEntity<Object> delete(@PathVariable("id") Long id) {
+        var categoria = categoriaService.findById(id);
+        if (categoria.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
         try {
-            service.delete(categoria.get());
-            return new ResponseEntity(HttpStatus.NO_CONTENT);
+
+            categoriaService.delete(categoria.get());
+            return ResponseEntity.noContent().build();
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-    }
-
-    public Categoria converter(CategoriaDTO dto) {
-        ModelMapper modelMapper = new ModelMapper();
-        Categoria categoria = modelMapper.map(dto, Categoria.class);
-        return categoria;
     }
 
 }

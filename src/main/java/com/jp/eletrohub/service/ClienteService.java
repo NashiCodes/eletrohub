@@ -1,10 +1,9 @@
 package com.jp.eletrohub.service;
 
-import com.jp.eletrohub.api.dto.ClienteDTO;
 import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.Cliente;
 import com.jp.eletrohub.model.repository.ClienteRepository;
-import jakarta.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,40 +12,39 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ClienteService {
-    private final ClienteRepository repository;
+    private final ClienteRepository clienteRepository;
 
-    public ClienteService(ClienteRepository repository) {
-        this.repository = repository;
+    public List<Cliente> list() {
+        return clienteRepository.findAll();
     }
 
-    public List<ClienteDTO> list() {
-        return repository.findAll().stream().map(ClienteDTO::create).toList();
-    }
-
-    public Optional<Cliente> findById(@Nonnull Long id) {
-        return repository.findById(id);
+    public Optional<Cliente> findById(Long id) {
+        return clienteRepository.findById(id);
     }
 
     @Transactional
-    public Cliente save(@Nonnull Cliente cliente) {
-        validar(cliente);
-        return repository.saveAndFlush(cliente);
+    public Cliente save(Cliente cliente) {
+        validate(cliente);
+        return clienteRepository.save(cliente);
     }
 
     @Transactional
-    public void excluir(@Nonnull Cliente cliente) {
+    public void delete(Cliente cliente) {
         Objects.requireNonNull(cliente.getId());
-        repository.delete(cliente);
+        clienteRepository.delete(cliente);
     }
 
-    public void validar(@Nonnull Cliente cliente) throws RegraNegocioException {
+    public void validate(Cliente cliente) {
         if (cliente.getNome() == null || cliente.getNome().trim().isEmpty()) {
             throw new RegraNegocioException("Nome inválido");
         }
+
         if (cliente.getEmail() == null || cliente.getEmail().trim().isEmpty()) {
             throw new RegraNegocioException("Email inválido");
         }
+
         if (cliente.getTelefone() == null || cliente.getTelefone().trim().isEmpty()) {
             throw new RegraNegocioException("Telefone inválido");
         }

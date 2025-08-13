@@ -4,58 +4,52 @@ import com.jp.eletrohub.api.dto.GerenteDTO;
 import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.Gerente;
 import com.jp.eletrohub.service.GerenteService;
-import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/gerentes")
 @RequiredArgsConstructor
 public class GerenteController {
 
-    private final @Nonnull GerenteService service;
+    private final GerenteService gerenteService;
 
     @GetMapping
-    public ResponseEntity get() {
-        List<Gerente> gerentes = service.getGerentes();
+    public ResponseEntity<List<GerenteDTO>> get() {
+        var gerentes = gerenteService.list().stream().map(GerenteDTO::create).toList();
         return ResponseEntity.ok(gerentes);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity get(@PathVariable("id") Long id) {
-        Optional<Gerente> gerente = service.getGerenteById(id);
-        if (!gerente.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(gerente.get());
+    public ResponseEntity<GerenteDTO> get(@PathVariable("id") Long id) {
+        var gerente = gerenteService.findById(id).map(GerenteDTO::create).orElseThrow(() -> new RegraNegocioException("Gerente não encontrado"));
+        return ResponseEntity.ok(gerente);
     }
 
-    @PostMapping
-    public ResponseEntity post(GerenteDTO dto) {
+    @PostMapping()
+    public ResponseEntity<Object> post(@RequestBody GerenteDTO dto) {
         try {
-            Gerente gerente = converter(dto);
-            gerente = service.salvar(gerente);
-            return ResponseEntity.status(201).body(gerente);
+            Gerente gerente = GerenteDTO.toEntity(dto);
+            gerente = gerenteService.salvar(gerente);
+            return ResponseEntity.status(HttpStatus.CREATED).body(GerenteDTO.create(gerente));
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("{id}")
-    public ResponseEntity atualizar(@PathVariable("id") Long id, GerenteDTO dto) {
-        if (!service.getGerenteById(id).isPresent()) {
-            return new ResponseEntity("Gerente não encontrado", HttpStatus.NOT_FOUND);
+    public ResponseEntity<Object> update(@PathVariable("id") Long id, @RequestBody GerenteDTO dto) {
+        if (gerenteService.findById(id).isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
         try {
-            Gerente gerente = converter(dto);
+            Gerente gerente = GerenteDTO.toEntity(dto);
             gerente.setId(id);
-            service.salvar(gerente);
+            gerenteService.salvar(gerente);
             return ResponseEntity.ok(gerente);
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -63,23 +57,16 @@ public class GerenteController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity excluir(@PathVariable("id") Long id) {
-        Optional<Gerente> gerente = service.getGerenteById(id);
-        if (!gerente.isPresent()) {
-            return new ResponseEntity("Gerente não encontrado", HttpStatus.NOT_FOUND);
+    public ResponseEntity<Object> delete(@PathVariable("id") Long id) {
+        var gerente = gerenteService.findById(id);
+        if (gerente.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
         try {
-            service.excluir(gerente.get());
-            return new ResponseEntity(HttpStatus.NO_CONTENT);
+            gerenteService.delete(gerente.get());
+            return ResponseEntity.ok().build();
         } catch (RegraNegocioException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
-    }
-
-
-    private Gerente converter(GerenteDTO dto) {
-        ModelMapper modelMapper = new ModelMapper();
-        Gerente gerente = modelMapper.map(dto, Gerente.class);
-        return gerente;
     }
 }

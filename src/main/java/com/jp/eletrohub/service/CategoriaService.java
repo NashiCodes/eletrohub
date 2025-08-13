@@ -1,10 +1,9 @@
 package com.jp.eletrohub.service;
 
-import com.jp.eletrohub.api.dto.CategoriaDTO;
 import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.Categoria;
 import com.jp.eletrohub.model.repository.CategoriaRepository;
-import jakarta.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,46 +12,28 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class CategoriaService {
-    private final CategoriaRepository repository;
+    private final CategoriaRepository categoriaRepository;
 
-    public CategoriaService(CategoriaRepository repository) {
-        this.repository = repository;
-    }
-
-    public List<CategoriaDTO> list() {
-        return repository.findAll()
-                .stream()
-                .map(CategoriaDTO::create)
-                .toList();
+    public List<Categoria> list() {
+        return categoriaRepository.findAll();
     }
 
     public Optional<Categoria> findById(Long id) {
-        return repository.findById(id);
+        return categoriaRepository.findById(id);
     }
 
     @Transactional
-    public Categoria save(@Nonnull CategoriaDTO categoria) {
-        if (categoria.getId() != null) {
-            var existingCategoria = repository.findById(categoria.getId());
-            if (existingCategoria.isEmpty()) {
-                throw new RegraNegocioException("Categoria não encontrada");
-            }
-            validar(categoria.toEntity());
-            existingCategoria.get().setNome(categoria.getNome());
-            return repository.save(existingCategoria.get());
-        } else {
-            var categoriaEntity = categoria.toEntity();
-            validar(categoriaEntity);
-
-            return repository.save(categoriaEntity);
-        }
+    public Categoria save(Categoria categoria) {
+        validar(categoria);
+        return categoriaRepository.save(categoria);
     }
 
     @Transactional
-    public void delete(@Nonnull Categoria categoria) {
+    public void delete(Categoria categoria) {
         Objects.requireNonNull(categoria.getId());
-        repository.delete(findById(categoria.getId()).orElseThrow(() -> new RegraNegocioException("Categoria não encontrada")));
+        categoriaRepository.delete(categoria);
     }
 
     public void validar(Categoria categoria) {

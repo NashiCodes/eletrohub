@@ -1,12 +1,14 @@
 package com.jp.eletrohub.api.dto;
 
 import com.jp.eletrohub.model.entity.VendaItem;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.modelmapper.ModelMapper;
 
-@Getter
-@Setter
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class VendaItemDTO {
     private Long id;
     private double valor;
