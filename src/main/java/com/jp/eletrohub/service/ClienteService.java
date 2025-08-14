@@ -1,14 +1,17 @@
 package com.jp.eletrohub.service;
 
-import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.api.dto.cliente.ClienteDTO;
+import com.jp.eletrohub.exception.NotFound;
 import com.jp.eletrohub.model.entity.Cliente;
 import com.jp.eletrohub.model.repository.ClienteRepository;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -25,31 +28,35 @@ public class ClienteService {
     }
 
     @Transactional
-    public Cliente save(Cliente cliente) {
-        validate(cliente);
+    protected Cliente create(@NotNull ClienteDTO dto) {
+        return clienteRepository.save(new Cliente(
+                dto.getNome(),
+                dto.getCpf(),
+                dto.getTelefone(),
+                dto.getEmail()
+        ));
+    }
+
+    @Transactional
+    public Cliente saveOrCreate(@Nullable Long id, @NotNull ClienteDTO dto) {
+        if (id == null) {
+            return create(dto);
+        }
+        var cliente = findById(id)
+                .orElseThrow(() -> new NotFound("Cliente não encontrado com o ID: " + id));
+
+        cliente.setNome(dto.getNome());
+        cliente.setCpf(dto.getCpf());
+        cliente.setTelefone(dto.getTelefone());
+        cliente.setEmail(dto.getEmail());
+
         return clienteRepository.save(cliente);
     }
 
     @Transactional
-    public void delete(Cliente cliente) {
-        Objects.requireNonNull(cliente.getId());
+    public void delete(@NotBlank Long id) {
+        var cliente = findById(id)
+                .orElseThrow(() -> new NotFound("Cliente não encontrado com o ID: " + id));
         clienteRepository.delete(cliente);
-    }
-
-    public void validate(Cliente cliente) {
-        if (cliente.getNome() == null || cliente.getNome().trim().isEmpty()) {
-            throw new RegraNegocioException("Nome inválido");
-        }
-
-        if (cliente.getEmail() == null || cliente.getEmail().trim().isEmpty()) {
-            throw new RegraNegocioException("Email inválido");
-        }
-
-        if (cliente.getTelefone() == null || cliente.getTelefone().trim().isEmpty()) {
-            throw new RegraNegocioException("Telefone inválido");
-        }
-        if (cliente.getCpf() == null || cliente.getCpf().trim().isEmpty()) {
-            throw new RegraNegocioException("CPF inválido");
-        }
     }
 }

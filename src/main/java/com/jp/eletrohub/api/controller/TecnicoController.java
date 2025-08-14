@@ -1,7 +1,7 @@
 package com.jp.eletrohub.api.controller;
 
-import com.jp.eletrohub.api.dto.TecnicoDTO;
-import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.api.dto.funcionarios.TecnicoDTO;
+import com.jp.eletrohub.exception.ResponseException;
 import com.jp.eletrohub.model.entity.Tecnico;
 import com.jp.eletrohub.service.TecnicoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,8 +30,8 @@ public class TecnicoController {
     @GetMapping
     @Operation(summary = "Listar técnicos")
     @ApiResponse(responseCode = "200", description = "Lista retornada")
-    public ResponseEntity<List<TecnicoDTO>> list() {
-        var tecnicos = tecnicoService.list().stream().map(TecnicoDTO::create).toList();
+    public ResponseEntity<List<Tecnico>> list() {
+        var tecnicos = tecnicoService.list().stream().toList();
         return ResponseEntity.ok(tecnicos);
     }
 
@@ -42,9 +41,9 @@ public class TecnicoController {
             @ApiResponse(responseCode = "200", description = "Técnico encontrado"),
             @ApiResponse(responseCode = "404", description = "Técnico não encontrado", content = @Content)
     })
-    public ResponseEntity<TecnicoDTO> get(@Parameter(description = "ID do técnico", required = true) @PathVariable("id") Long id) {
-        var tecnico = tecnicoService.findById(id).map(TecnicoDTO::create).orElseThrow(() -> new RegraNegocioException("Técnico não encontrado"));
-        return ResponseEntity.ok(tecnico);
+    public ResponseEntity<Tecnico> get(@Parameter(description = "ID do técnico", required = true) @PathVariable("id") Long id) {
+        var tecnico = tecnicoService.findById(id);
+        return tecnico.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping()
@@ -53,13 +52,12 @@ public class TecnicoController {
             @ApiResponse(responseCode = "201", description = "Técnico criado"),
             @ApiResponse(responseCode = "400", description = "Erro de validação")
     })
-    public ResponseEntity<Object> post(@Parameter(description = "Dados do técnico", required = true) @RequestBody TecnicoDTO dto) {
+    public ResponseEntity<?> post(@Parameter(description = "Dados do técnico", required = true) @RequestBody TecnicoDTO dto) {
         try {
-            Tecnico tecnico = converter(dto);
-            tecnico = tecnicoService.save(tecnico);
-            return ResponseEntity.status(HttpStatus.CREATED).body(TecnicoDTO.create(tecnico));
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            var tecnico = tecnicoService.saveOrCreate(null, dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(tecnico);
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
     }
 
@@ -70,17 +68,15 @@ public class TecnicoController {
             @ApiResponse(responseCode = "404", description = "Técnico não encontrado", content = @Content),
             @ApiResponse(responseCode = "400", description = "Erro de validação")
     })
-    public ResponseEntity<Object> update(@Parameter(description = "ID do técnico", required = true) @PathVariable("id") Long id, @Parameter(description = "Dados do técnico", required = true) @RequestBody TecnicoDTO dto) {
+    public ResponseEntity<?> update(@Parameter(description = "ID do técnico", required = true) @PathVariable("id") Long id, @Parameter(description = "Dados do técnico", required = true) @RequestBody TecnicoDTO dto) {
         if (tecnicoService.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
         try {
-            Tecnico tecnico = converter(dto);
-            tecnico.setId(id);
-            tecnicoService.save(tecnico);
+            var tecnico = tecnicoService.saveOrCreate(id, dto);
             return ResponseEntity.ok(tecnico);
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
     }
 
@@ -91,21 +87,12 @@ public class TecnicoController {
             @ApiResponse(responseCode = "404", description = "Técnico não encontrado", content = @Content),
             @ApiResponse(responseCode = "400", description = "Erro ao remover")
     })
-    public ResponseEntity<Object> update(@Parameter(description = "ID do técnico", required = true) @PathVariable("id") Long id) {
-        var tecnico = tecnicoService.findById(id);
-        if (tecnico.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<?> update(@Parameter(description = "ID do técnico", required = true) @PathVariable("id") Long id) {
         try {
-            tecnicoService.delete(tecnico.get());
+            tecnicoService.delete(id);
             return ResponseEntity.ok().build();
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
-    }
-
-    private Tecnico converter(TecnicoDTO dto) {
-        ModelMapper modelMapper = new ModelMapper();
-        return modelMapper.map(dto, Tecnico.class);
     }
 }

@@ -1,13 +1,10 @@
 package com.jp.eletrohub.api.controller;
 
-import com.jp.eletrohub.api.dto.VendaItemDTO;
+import com.jp.eletrohub.api.dto.venda.VendaItemDTO;
 import com.jp.eletrohub.exception.RegraNegocioException;
-import com.jp.eletrohub.model.entity.Produto;
-import com.jp.eletrohub.model.entity.Venda;
+import com.jp.eletrohub.exception.ResponseException;
 import com.jp.eletrohub.model.entity.VendaItem;
-import com.jp.eletrohub.service.ProdutoService;
 import com.jp.eletrohub.service.VendaItemService;
-import com.jp.eletrohub.service.VendaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,14 +12,13 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/vendaitens")
@@ -32,14 +28,12 @@ import java.util.Optional;
 public class VendaItemController {
 
     private final VendaItemService vendaItemService;
-    private final VendaService vendaService;
-    private final ProdutoService produtoService;
 
     @GetMapping
     @Operation(summary = "Listar itens de venda")
     @ApiResponse(responseCode = "200", description = "Lista retornada")
-    public ResponseEntity<List<VendaItemDTO>> list() {
-        var vendaItens = vendaItemService.list().stream().map(VendaItemDTO::create).toList();
+    public ResponseEntity<List<VendaItem>> list() {
+        var vendaItens = vendaItemService.list().stream().toList();
         return ResponseEntity.ok(vendaItens);
     }
 
@@ -49,10 +43,9 @@ public class VendaItemController {
             @ApiResponse(responseCode = "200", description = "Item encontrado"),
             @ApiResponse(responseCode = "404", description = "Item não encontrado", content = @Content)
     })
-    public ResponseEntity<VendaItemDTO> get(@Parameter(description = "ID do item", required = true) @PathVariable("id") Long id) {
-        var vendaItens =
-                vendaItemService.findById(id).map(VendaItemDTO::create).orElseThrow(() -> new RegraNegocioException("Venda Item não encontrado"));
-        return ResponseEntity.ok(vendaItens);
+    public ResponseEntity<VendaItem> get(@Parameter(description = "ID do item", required = true) @PathVariable("id") Long id) {
+        var vendaItens = vendaItemService.findById(id);
+        return vendaItens.map(ResponseEntity::ok).orElseThrow(() -> new RegraNegocioException("Item não encontrado"));
     }
 
     @PostMapping()
@@ -61,13 +54,12 @@ public class VendaItemController {
             @ApiResponse(responseCode = "201", description = "Item criado"),
             @ApiResponse(responseCode = "400", description = "Erro de validação")
     })
-    public ResponseEntity<Object> post(@Parameter(description = "Dados do item", required = true) @RequestBody VendaItemDTO dto) {
+    public ResponseEntity<?> post(@Parameter(description = "Dados do item", required = true) @Valid @RequestBody VendaItemDTO dto) {
         try {
-            VendaItem vendaItem = convert(dto);
-            vendaItem = vendaItemService.save(vendaItem);
+            var vendaItem = vendaItemService.saveOrCreate(null, dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(VendaItemDTO.create(vendaItem));
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
     }
 
@@ -78,17 +70,13 @@ public class VendaItemController {
             @ApiResponse(responseCode = "404", description = "Item não encontrado", content = @Content),
             @ApiResponse(responseCode = "400", description = "Erro de validação")
     })
-    public ResponseEntity<Object> update(@Parameter(description = "ID do item", required = true) @PathVariable("id") Long id, @Parameter(description = "Dados do item", required = true) @RequestBody VendaItemDTO dto) {
-        if (vendaItemService.findById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<?> update(@Parameter(description = "ID do item", required = true) @PathVariable("id") Long id,
+                                    @Parameter(description = "Dados do item", required = true) @Valid @RequestBody VendaItemDTO dto) {
         try {
-            VendaItem vendaItem = convert(dto);
-            vendaItem.setId(id);
-            vendaItemService.save(vendaItem);
+            VendaItem vendaItem = vendaItemService.saveOrCreate(id, dto);
             return ResponseEntity.ok(vendaItem);
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
     }
 
@@ -99,33 +87,13 @@ public class VendaItemController {
             @ApiResponse(responseCode = "404", description = "Item não encontrado", content = @Content),
             @ApiResponse(responseCode = "400", description = "Erro ao remover")
     })
-    public ResponseEntity<Object> delete(@Parameter(description = "ID do item", required = true) @PathVariable("id") Long id) {
-        var vendaItem = vendaItemService.findById(id);
-        if (vendaItem.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<?> delete(@Parameter(description = "ID do item", required = true) @PathVariable("id") Long id) {
         try {
-            vendaItemService.delete(vendaItem.get());
+            vendaItemService.delete(id);
             return ResponseEntity.ok().build();
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
     }
 
-    private VendaItem convert(VendaItemDTO dto) {
-        ModelMapper modelMapper = new ModelMapper();
-        VendaItem vendaItem = modelMapper.map(dto, VendaItem.class);
-
-        if (dto.getIdVenda() != null) {
-            Optional<Venda> venda = vendaService.getVendaById(dto.getIdVenda());
-            vendaItem.setVenda(venda.orElse(null));
-        }
-
-        if (dto.getIdProduto() != null) {
-            Optional<Produto> produto = produtoService.findById(dto.getIdProduto());
-            vendaItem.setProduto(produto.orElse(null));
-        }
-
-        return vendaItem;
-    }
 }

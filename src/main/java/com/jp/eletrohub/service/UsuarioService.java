@@ -1,8 +1,9 @@
 package com.jp.eletrohub.service;
 
-import com.jp.eletrohub.api.dto.RegisterDTO;
+import com.jp.eletrohub.api.dto.login.RegisterDTO;
 import com.jp.eletrohub.model.entity.Usuario;
 import com.jp.eletrohub.model.repository.UsuarioRepository;
+import jakarta.validation.constraints.Email;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,12 +19,6 @@ public class UsuarioService implements UserDetailsService {
 
     @Transactional
     public Usuario saveOrCreate(RegisterDTO dto) {
-        if (dto.getLogin() == null || dto.getLogin().isEmpty()) {
-            throw new IllegalArgumentException("Login não pode ser vazio");
-        }
-        if (dto.getSenha() == null || dto.getSenha().isEmpty()) {
-            throw new IllegalArgumentException("Senha não pode ser vazia");
-        }
         if (repository.findByLogin(dto.getLogin()).isPresent()) {
             throw new IllegalArgumentException("Usuário já existe com o login: " + dto.getLogin());
         }
@@ -36,7 +31,9 @@ public class UsuarioService implements UserDetailsService {
     }
 
     @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(@Email(
+            message = "O email deve ser válido"
+    ) String username) {
 
         var usuario = repository.findByLogin(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));

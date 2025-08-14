@@ -1,7 +1,7 @@
 package com.jp.eletrohub.api.controller;
 
-import com.jp.eletrohub.api.dto.GerenteDTO;
-import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.api.dto.funcionarios.GerenteDTO;
+import com.jp.eletrohub.exception.ResponseException;
 import com.jp.eletrohub.model.entity.Gerente;
 import com.jp.eletrohub.service.GerenteService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,8 +30,8 @@ public class GerenteController {
     @GetMapping
     @Operation(summary = "Listar gerentes")
     @ApiResponse(responseCode = "200", description = "Lista retornada")
-    public ResponseEntity<List<GerenteDTO>> get() {
-        var gerentes = gerenteService.list().stream().map(GerenteDTO::create).toList();
+    public ResponseEntity<List<Gerente>> get() {
+        var gerentes = gerenteService.list().stream().toList();
         return ResponseEntity.ok(gerentes);
     }
 
@@ -41,9 +41,9 @@ public class GerenteController {
             @ApiResponse(responseCode = "200", description = "Gerente encontrado"),
             @ApiResponse(responseCode = "404", description = "Gerente não encontrado", content = @Content)
     })
-    public ResponseEntity<GerenteDTO> get(@Parameter(description = "ID do gerente", required = true) @PathVariable("id") Long id) {
-        var gerente = gerenteService.findById(id).map(GerenteDTO::create).orElseThrow(() -> new RegraNegocioException("Gerente não encontrado"));
-        return ResponseEntity.ok(gerente);
+    public ResponseEntity<Gerente> get(@Parameter(description = "ID do gerente", required = true) @PathVariable("id") Long id) {
+        var gerente = gerenteService.findById(id);
+        return gerente.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping()
@@ -52,13 +52,12 @@ public class GerenteController {
             @ApiResponse(responseCode = "201", description = "Gerente criado"),
             @ApiResponse(responseCode = "400", description = "Erro de validação")
     })
-    public ResponseEntity<Object> post(@Parameter(description = "Dados do gerente", required = true) @RequestBody GerenteDTO dto) {
+    public ResponseEntity<?> post(@Parameter(description = "Dados do gerente", required = true) @RequestBody GerenteDTO dto) {
         try {
-            Gerente gerente = GerenteDTO.toEntity(dto);
-            gerente = gerenteService.salvar(gerente);
-            return ResponseEntity.status(HttpStatus.CREATED).body(GerenteDTO.create(gerente));
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+            var gerente = gerenteService.saveOrCreate(null, dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(gerente);
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
     }
 
@@ -69,17 +68,13 @@ public class GerenteController {
             @ApiResponse(responseCode = "404", description = "Gerente não encontrado", content = @Content),
             @ApiResponse(responseCode = "400", description = "Erro de validação")
     })
-    public ResponseEntity<Object> update(@Parameter(description = "ID do gerente", required = true) @PathVariable("id") Long id, @Parameter(description = "Dados do gerente", required = true) @RequestBody GerenteDTO dto) {
-        if (gerenteService.findById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<?> update(@Parameter(description = "ID do gerente", required = true) @PathVariable("id") Long id,
+                                    @Parameter(description = "Dados do gerente", required = true) @RequestBody GerenteDTO dto) {
         try {
-            Gerente gerente = GerenteDTO.toEntity(dto);
-            gerente.setId(id);
-            gerenteService.salvar(gerente);
+            var gerente = gerenteService.saveOrCreate(id, dto);
             return ResponseEntity.ok(gerente);
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
     }
 
@@ -90,16 +85,12 @@ public class GerenteController {
             @ApiResponse(responseCode = "404", description = "Gerente não encontrado", content = @Content),
             @ApiResponse(responseCode = "400", description = "Erro ao remover")
     })
-    public ResponseEntity<Object> delete(@Parameter(description = "ID do gerente", required = true) @PathVariable("id") Long id) {
-        var gerente = gerenteService.findById(id);
-        if (gerente.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<?> delete(@Parameter(description = "ID do gerente", required = true) @PathVariable("id") Long id) {
         try {
-            gerenteService.delete(gerente.get());
+            gerenteService.delete(id);
             return ResponseEntity.ok().build();
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
     }
 }

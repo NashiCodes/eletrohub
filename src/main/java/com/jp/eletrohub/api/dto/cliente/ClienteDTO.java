@@ -1,42 +1,25 @@
-package com.jp.eletrohub.model.entity;
+package com.jp.eletrohub.api.dto.cliente;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.validator.constraints.br.CPF;
 
-@Entity
 @Data
 @NoArgsConstructor
-public class Cliente {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+@AllArgsConstructor
+public class ClienteDTO {
     @NotBlank(message = "O nome não pode estar em branco")
     private String nome;
-
     @NotBlank(message = "O CPF não pode estar em branco")
     @CPF(message = "O CPF deve ser válido")
     private String cpf;
-
     @NotBlank(message = "O telefone não pode estar em branco")
     private String telefone;
-
-    @Email(message = "O email deve ser válido")
     @NotBlank(message = "O email não pode estar em branco")
+    @Email(message = "O email deve ser válido")
     private
     String email;
-
-    public Cliente(String nome, String cpf, String telefone, String email) {
-        this.nome = nome;
-        this.cpf = cpf;
-        this.telefone = telefone;
-        this.email = email;
-    }
 }

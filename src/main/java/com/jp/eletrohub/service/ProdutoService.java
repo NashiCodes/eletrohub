@@ -1,8 +1,13 @@
 package com.jp.eletrohub.service;
 
+import com.jp.eletrohub.api.dto.venda.ProdutoDTO;
+import com.jp.eletrohub.exception.NotFound;
 import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.Produto;
 import com.jp.eletrohub.model.repository.ProdutoRepository;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +20,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class ProdutoService {
     private final ProdutoRepository repository;
+    private final CategoriaService categoriaService;
 
     public List<Produto> list() {
         return repository.findAll();
@@ -25,32 +31,40 @@ public class ProdutoService {
     }
 
     @Transactional
-    public Produto save(Produto produto) {
-        validar(produto);
-        return repository.save(produto);
+    public Produto saveOrCreate(@Nullable Long id, @NotNull ProdutoDTO dto) {
+        var categoria = categoriaService.findById(dto.getIdCategoria())
+                .orElseThrow(() -> new NotFound("Categoria não encontrada com o ID: " + dto.getIdCategoria()));
+        if (Objects.isNull(id)) {
+            validar(dto);
+            return repository.save(new Produto(dto.getNome(), dto.getValor(), dto.getQuantidade(), categoria));
+        }
+        var existingProduto = repository.findById(id)
+                .orElseThrow(() -> new NotFound("Produto não encontrado com o ID: " + id));
+        existingProduto.setNome(dto.getNome());
+        existingProduto.setValor(dto.getValor());
+        existingProduto.setQuantidade(dto.getQuantidade());
+        existingProduto.setCategoria(categoria);
+        return repository.save(existingProduto);
     }
 
     @Transactional
-    public void delete(Produto produto) {
-        Objects.requireNonNull(produto.getId());
+    public void delete(@NotBlank Long id) {
+        var produto = repository.findById(id)
+                .orElseThrow(() -> new NotFound("Produto não encontrado com o ID: " + id));
         repository.delete(produto);
     }
 
-    public void validar(Produto produto) {
+    public void validar(ProdutoDTO produto) {
         if (produto.getNome() == null || produto.getNome().trim().isEmpty()) {
             throw new RegraNegocioException("Nome do produto inválido");
         }
 
-        if (produto.getValor() == null || produto.getValor() <= 0) {
+        if (produto.getValor() <= 0) {
             throw new RegraNegocioException("Valor do produto inválido");
         }
 
-        if (produto.getQuantidade() == null || produto.getValor() < 0) {
+        if (produto.getQuantidade() < 1) {
             throw new RegraNegocioException("Quantidade do produto inválida");
-        }
-
-        if (produto.getCategoria() == null || produto.getCategoria().getId() == null || produto.getCategoria().getId() == 0) {
-            throw new RegraNegocioException("Categoria inválida");
         }
     }
 }

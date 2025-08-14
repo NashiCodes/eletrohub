@@ -1,20 +1,25 @@
 package com.jp.eletrohub.service;
 
+import com.jp.eletrohub.api.dto.venda.VendaItemDTO;
+import com.jp.eletrohub.exception.NotFound;
 import com.jp.eletrohub.exception.RegraNegocioException;
 import com.jp.eletrohub.model.entity.VendaItem;
 import com.jp.eletrohub.model.repository.VendaItemRepository;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class VendaItemService {
     private final VendaItemRepository vendaItemRepository;
+    private final ProdutoService produtoService;
+    private final VendaService vendaService;
 
     public List<VendaItem> list() {
         return vendaItemRepository.findAll();
@@ -25,33 +30,46 @@ public class VendaItemService {
     }
 
     @Transactional
-    public VendaItem save(VendaItem vendaItem) {
-        validate(vendaItem);
+    public VendaItem saveOrCreate(@Nullable Long id, @NotNull VendaItemDTO dto) {
+        validate(dto);
+
+        var idVenda = dto.getIdVenda();
+        var idProduto = dto.getIdProduto();
+        var venda = vendaService.findById(idVenda)
+                .orElseThrow(() -> new NotFound("Venda não encontrada com o ID: " + idVenda));
+        var produto = produtoService.findById(idProduto)
+                .orElseThrow(() -> new NotFound("Produto não encontrado com o ID: " + idProduto));
+
+        VendaItem vendaItem;
+
+        if (id == null) {
+            vendaItem = new VendaItem();
+        } else {
+            vendaItem = vendaItemRepository.findById(id)
+                    .orElseThrow(() -> new RegraNegocioException("Venda Item não encontrado com o ID: " + id));
+        }
+
+        vendaItem.setValor(dto.getValor());
+        vendaItem.setQuantidade(dto.getQuantidade());
+        vendaItem.setVenda(venda);
+        vendaItem.setProduto(produto);
+
         return vendaItemRepository.save(vendaItem);
     }
 
     @Transactional
-    public void delete(VendaItem vendaItem) {
-        Objects.requireNonNull(vendaItem.getId());
+    public void delete(@NotNull Long id) {
+        VendaItem vendaItem = vendaItemRepository.findById(id)
+                .orElseThrow(() -> new RegraNegocioException("Venda Item não encontrado com o ID: " + id));
         vendaItemRepository.delete(vendaItem);
     }
 
-    public void validate(VendaItem vendaItem) {
-
-        if (vendaItem.getValor() == null || vendaItem.getValor() <= 0) {
-            throw new RegraNegocioException("Valor do item inválido");
+    public void validate(@NotNull VendaItemDTO dto) {
+        if (dto.getQuantidade() < 0) {
+            throw new RegraNegocioException("Quantidade deve ser maior que zero");
         }
-
-        if (vendaItem.getQuantidade() == null || vendaItem.getValor() < 0) {
-            throw new RegraNegocioException("Quantidade do item inválida");
-        }
-
-        if (vendaItem.getVenda() == null || vendaItem.getVenda().getId() == null || vendaItem.getVenda().getId() == 0) {
-            throw new RegraNegocioException("Venda inválida");
-        }
-
-        if (vendaItem.getProduto() == null || vendaItem.getProduto().getId() == null || vendaItem.getProduto().getId() == 0) {
-            throw new RegraNegocioException("Produto inválido");
+        if (dto.getValor() < 0) {
+            throw new RegraNegocioException("Valor deve ser maior que zero");
         }
     }
 }

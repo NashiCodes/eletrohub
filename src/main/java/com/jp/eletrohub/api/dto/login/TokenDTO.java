@@ -1,4 +1,5 @@
-package com.jp.eletrohub.api.dto;
+package com.jp.eletrohub.api.dto.login;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

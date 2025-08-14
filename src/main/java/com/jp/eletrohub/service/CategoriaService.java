@@ -1,14 +1,15 @@
 package com.jp.eletrohub.service;
 
-import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.api.dto.venda.CategoriaDTO;
 import com.jp.eletrohub.model.entity.Categoria;
 import com.jp.eletrohub.model.repository.CategoriaRepository;
+import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -25,20 +26,21 @@ public class CategoriaService {
     }
 
     @Transactional
-    public Categoria save(Categoria categoria) {
-        validar(categoria);
+    public Categoria saveOrCreate(@Nullable Long id, @NotNull CategoriaDTO dto) {
+        if (id == null) {
+            return categoriaRepository.save(CategoriaDTO.toEntity(dto));
+        }
+        var categoria = findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada com o ID: " + id));
+        categoria.setNome(dto.getNome());
         return categoriaRepository.save(categoria);
     }
 
     @Transactional
-    public void delete(Categoria categoria) {
-        Objects.requireNonNull(categoria.getId());
+    public void delete(@NotNull Long id) {
+        var categoria = findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Categoria não encontrada com o ID: " + id));
         categoriaRepository.delete(categoria);
     }
 
-    public void validar(Categoria categoria) {
-        if (categoria.getNome() == null || categoria.getNome().trim().isEmpty()) {
-            throw new RegraNegocioException("Nome da categoria inválido");
-        }
-    }
 }

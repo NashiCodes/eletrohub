@@ -1,9 +1,8 @@
 package com.jp.eletrohub.api.controller;
 
-import com.jp.eletrohub.api.dto.ProdutoDTO;
-import com.jp.eletrohub.exception.RegraNegocioException;
+import com.jp.eletrohub.api.dto.venda.ProdutoDTO;
+import com.jp.eletrohub.exception.ResponseException;
 import com.jp.eletrohub.model.entity.Produto;
-import com.jp.eletrohub.service.CategoriaService;
 import com.jp.eletrohub.service.ProdutoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -13,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,13 +26,12 @@ import java.util.List;
 public class ProdutoController {
 
     private final ProdutoService service;
-    private final CategoriaService categoriaService;
 
     @GetMapping
     @Operation(summary = "Listar produtos", description = "Retorna todos os produtos cadastrados")
     @ApiResponse(responseCode = "200", description = "Lista retornada")
-    public ResponseEntity<List<ProdutoDTO>> list() {
-        var produtos = service.list().stream().map(ProdutoDTO::create).toList();
+    public ResponseEntity<List<Produto>> list() {
+        var produtos = service.list().stream().toList();
         return ResponseEntity.ok(produtos);
     }
 
@@ -44,10 +41,10 @@ public class ProdutoController {
             @ApiResponse(responseCode = "200", description = "Produto encontrado"),
             @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content)
     })
-    public ResponseEntity<ProdutoDTO> get(
+    public ResponseEntity<Produto> get(
             @Parameter(description = "ID do produto", required = true) @PathVariable("id") Long id) {
-        var produto = service.findById(id).map(ProdutoDTO::create).orElseThrow(() -> new RegraNegocioException("Produto não encontrado"));
-        return ResponseEntity.ok(produto);
+        var produto = service.findById(id);
+        return produto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping()
@@ -56,14 +53,14 @@ public class ProdutoController {
             @ApiResponse(responseCode = "201", description = "Produto criado"),
             @ApiResponse(responseCode = "400", description = "Erro de validação")
     })
-    public ResponseEntity<Object> post(
+    public ResponseEntity<?> post(
             @Parameter(description = "Dados do produto", required = true) @RequestBody ProdutoDTO dto) {
         try {
-            Produto produto = converter(dto);
-            produto = service.save(produto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(ProdutoDTO.create(produto));
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+
+            var produto = service.saveOrCreate(null, dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(produto);
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
     }
 
@@ -74,19 +71,14 @@ public class ProdutoController {
             @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content),
             @ApiResponse(responseCode = "400", description = "Erro de validação")
     })
-    public ResponseEntity<Object> update(
+    public ResponseEntity<?> update(
             @Parameter(description = "ID do produto", required = true) @PathVariable("id") Long id,
             @Parameter(description = "Dados do produto", required = true) @RequestBody ProdutoDTO dto) {
-        if (service.findById(id).isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
         try {
-            Produto produto = converter(dto);
-            produto.setId(id);
-            service.save(produto);
+            var produto = service.saveOrCreate(id, dto);
             return ResponseEntity.ok(produto);
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
     }
 
@@ -97,27 +89,13 @@ public class ProdutoController {
             @ApiResponse(responseCode = "404", description = "Produto não encontrado", content = @Content),
             @ApiResponse(responseCode = "400", description = "Erro ao remover")
     })
-    public ResponseEntity<Object> delete(
+    public ResponseEntity<?> delete(
             @Parameter(description = "ID do produto", required = true) @PathVariable("id") Long id) {
-        var produto = service.findById(id);
-        if (produto.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
         try {
-            service.delete(produto.get());
+            service.delete(id);
             return ResponseEntity.ok().build();
-        } catch (RegraNegocioException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return new ResponseException(e).toResponseEntity();
         }
-    }
-
-    private Produto converter(ProdutoDTO dto) {
-        ModelMapper modelMapper = new ModelMapper();
-        Produto produto = modelMapper.map(dto, Produto.class);
-        if (dto.getIdCategoria() != null) {
-            var categoria = categoriaService.findById(dto.getIdCategoria());
-            produto.setCategoria(categoria.orElse(null));
-        }
-        return produto;
     }
 }
