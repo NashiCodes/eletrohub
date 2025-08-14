@@ -8,6 +8,13 @@ import com.jp.eletrohub.model.entity.VendaItem;
 import com.jp.eletrohub.service.ProdutoService;
 import com.jp.eletrohub.service.VendaItemService;
 import com.jp.eletrohub.service.VendaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
@@ -20,6 +27,8 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/v1/vendaitens")
 @RequiredArgsConstructor
+@Tag(name = "Venda Item", description = "Gerenciamento de itens de venda")
+@SecurityRequirement(name = "bearerAuth")
 public class VendaItemController {
 
     private final VendaItemService vendaItemService;
@@ -27,20 +36,32 @@ public class VendaItemController {
     private final ProdutoService produtoService;
 
     @GetMapping
+    @Operation(summary = "Listar itens de venda")
+    @ApiResponse(responseCode = "200", description = "Lista retornada")
     public ResponseEntity<List<VendaItemDTO>> list() {
         var vendaItens = vendaItemService.list().stream().map(VendaItemDTO::create).toList();
         return ResponseEntity.ok(vendaItens);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<VendaItemDTO> get(@PathVariable("id") Long id) {
+    @Operation(summary = "Obter item de venda")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Item encontrado"),
+            @ApiResponse(responseCode = "404", description = "Item não encontrado", content = @Content)
+    })
+    public ResponseEntity<VendaItemDTO> get(@Parameter(description = "ID do item", required = true) @PathVariable("id") Long id) {
         var vendaItens =
                 vendaItemService.findById(id).map(VendaItemDTO::create).orElseThrow(() -> new RegraNegocioException("Venda Item não encontrado"));
         return ResponseEntity.ok(vendaItens);
     }
 
     @PostMapping()
-    public ResponseEntity<Object> post(@RequestBody VendaItemDTO dto) {
+    @Operation(summary = "Criar item de venda")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Item criado"),
+            @ApiResponse(responseCode = "400", description = "Erro de validação")
+    })
+    public ResponseEntity<Object> post(@Parameter(description = "Dados do item", required = true) @RequestBody VendaItemDTO dto) {
         try {
             VendaItem vendaItem = convert(dto);
             vendaItem = vendaItemService.save(vendaItem);
@@ -51,7 +72,13 @@ public class VendaItemController {
     }
 
     @PutMapping("{id}")
-    public ResponseEntity<Object> update(@PathVariable("id") Long id, @RequestBody VendaItemDTO dto) {
+    @Operation(summary = "Atualizar item de venda")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Item atualizado"),
+            @ApiResponse(responseCode = "404", description = "Item não encontrado", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Erro de validação")
+    })
+    public ResponseEntity<Object> update(@Parameter(description = "ID do item", required = true) @PathVariable("id") Long id, @Parameter(description = "Dados do item", required = true) @RequestBody VendaItemDTO dto) {
         if (vendaItemService.findById(id).isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -66,7 +93,13 @@ public class VendaItemController {
     }
 
     @DeleteMapping("{id}")
-    public ResponseEntity<Object> delete(@PathVariable("id") Long id) {
+    @Operation(summary = "Excluir item de venda")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Item removido"),
+            @ApiResponse(responseCode = "404", description = "Item não encontrado", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Erro ao remover")
+    })
+    public ResponseEntity<Object> delete(@Parameter(description = "ID do item", required = true) @PathVariable("id") Long id) {
         var vendaItem = vendaItemService.findById(id);
         if (vendaItem.isEmpty()) {
             return ResponseEntity.notFound().build();
@@ -85,20 +118,12 @@ public class VendaItemController {
 
         if (dto.getIdVenda() != null) {
             Optional<Venda> venda = vendaService.getVendaById(dto.getIdVenda());
-            if (venda.isEmpty()) {
-                vendaItem.setVenda(null);
-            } else {
-                vendaItem.setVenda(venda.get());
-            }
+            vendaItem.setVenda(venda.orElse(null));
         }
 
         if (dto.getIdProduto() != null) {
             Optional<Produto> produto = produtoService.findById(dto.getIdProduto());
-            if (produto.isEmpty()) {
-                vendaItem.setProduto(null);
-            } else {
-                vendaItem.setProduto(produto.get());
-            }
+            vendaItem.setProduto(produto.orElse(null));
         }
 
         return vendaItem;

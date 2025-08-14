@@ -1,48 +1,47 @@
 package com.jp.eletrohub.service;
 
-import com.jp.eletrohub.exception.SenhaInvalidaException;
+import com.jp.eletrohub.api.dto.RegisterDTO;
 import com.jp.eletrohub.model.entity.Usuario;
 import com.jp.eletrohub.model.repository.UsuarioRepository;
-import org.apache.catalina.User;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@RequiredArgsConstructor
 public class UsuarioService implements UserDetailsService {
-
-    @Autowired
-    private PasswordEncoder encoder;
-
-    @Autowired
-    private UsuarioRepository repository;
+    private final UsuarioRepository repository;
 
     @Transactional
-    public Usuario salvar(Usuario usuario){
-        return repository.save(usuario);
-    }
-
-    public UserDetails autenticar(Usuario usuario){
-        UserDetails user = loadUserByUsername(usuario.getLogin());
-        boolean senhasBatem = encoder.matches(usuario.getSenha(), user.getPassword());
-
-        if (senhasBatem){
-            return user;
+    public Usuario saveOrCreate(RegisterDTO dto) {
+        if (dto.getLogin() == null || dto.getLogin().isEmpty()) {
+            throw new IllegalArgumentException("Login não pode ser vazio");
         }
-        throw new SenhaInvalidaException();
+        if (dto.getSenha() == null || dto.getSenha().isEmpty()) {
+            throw new IllegalArgumentException("Senha não pode ser vazia");
+        }
+        if (repository.findByLogin(dto.getLogin()).isPresent()) {
+            throw new IllegalArgumentException("Usuário já existe com o login: " + dto.getLogin());
+        }
+        var newUser = Usuario.builder()
+                .login(dto.getLogin())
+                .senha(dto.getSenha())
+                .admin(dto.isAdmin())
+                .build();
+        return repository.save(newUser);
     }
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        Usuario usuario = repository.findByLogin(username)
+        var usuario = repository.findByLogin(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
 
-        String[] roles = usuario.isAdmin()
+        var roles = usuario.isAdmin()
                 ? new String[]{"ADMIN", "USER"}
                 : new String[]{"USER"};
 

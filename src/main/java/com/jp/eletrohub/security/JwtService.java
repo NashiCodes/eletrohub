@@ -5,9 +5,12 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.security.Key;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -22,9 +25,15 @@ public class JwtService {
     @Value("${security.jwt.chave-assinatura}")
     private String chaveAssinatura;
 
+    private Key getSigningKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(chaveAssinatura);
+        // Existing key is shorter than 64 bytes; using HS256 to avoid WeakKeyException
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
     public String gerarToken(Usuario usuario) {
-        long expString = Long.valueOf(expiracao);
-        LocalDateTime dataHoraExpiracao = LocalDateTime.now().plusMinutes(expString);
+        long expMinutes = Long.parseLong(expiracao);
+        LocalDateTime dataHoraExpiracao = LocalDateTime.now().plusMinutes(expMinutes);
         Instant instant = dataHoraExpiracao.atZone(ZoneId.systemDefault()).toInstant();
         Date data = Date.from(instant);
 
@@ -32,14 +41,15 @@ public class JwtService {
                 .builder()
                 .setSubject(usuario.getLogin())
                 .setExpiration(data)
-                .signWith(SignatureAlgorithm.HS512, chaveAssinatura)
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
     private Claims obterClaims(String token) throws ExpiredJwtException {
         return Jwts
-                .parser()
-                .setSigningKey(chaveAssinatura)
+                .parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
@@ -48,9 +58,7 @@ public class JwtService {
         try {
             Claims claims = obterClaims(token);
             Date dataExpiracao = claims.getExpiration();
-            LocalDateTime data =
-                    dataExpiracao.toInstant()
-                            .atZone(ZoneId.systemDefault()).toLocalDateTime();
+            LocalDateTime data = dataExpiracao.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
             return !LocalDateTime.now().isAfter(data);
         } catch (Exception e) {
             return false;
@@ -58,6 +66,6 @@ public class JwtService {
     }
 
     public String obterLoginUsuario(String token) throws ExpiredJwtException {
-        return (String) obterClaims(token).getSubject();
+        return obterClaims(token).getSubject();
     }
 }
